@@ -67,9 +67,9 @@ interface CreatedInvoice {
   _id: string;
   invoiceNumber: string;
   customer: { name: string; phone: string };
-  items: Array<{ product: { name: string; sku: string }; quantity: number; unitPrice: number; total: number }>;
+  items: Array<{ product: { name: string; sku: string }; quantity: number; price: number; subtotal: number }>;
   subtotal: number;
-  tax: number;
+  taxAmount?: number;
   discountAmount: number;
   total: number;
   paymentMethod: string;
@@ -260,8 +260,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
     (sum, item) => sum + item.quantity * item.price,
     0
   );
-  const tax = subtotal * 0.18;
-  const total = Math.max(0, subtotal + tax - discountAmount);
+  const total = Math.max(0, subtotal - discountAmount);
 
   const filteredCustomers = customers.filter((c) => {
     const query = customerSearchQuery.trim().toLowerCase();
@@ -726,10 +725,6 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                 <span>Subtotal (items sum)</span>
                 <span className="font-semibold text-white">₹{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Integrated Tax (18% GST)</span>
-                <span className="font-semibold text-white">₹{tax.toFixed(2)}</span>
-              </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-red-400 font-semibold">
                   <span>Special Discount</span>
@@ -746,7 +741,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
 
               {/* Status Operational badge */}
               <span className="text-[9px] bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full text-slate-300 font-bold uppercase tracking-wider">
-                GST Invoice
+                Retail Invoice
               </span>
             </div>
 
@@ -865,7 +860,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
         const handleWhatsApp = () => {
           const phone = (customer?.phone || '').replace(/[^0-9]/g, '');
           const formatted = phone.length === 10 ? `91${phone}` : phone;
-          let shopName = 'Nexurah BillEase';
+          let shopName = "NexBill";
           try {
             const s = localStorage.getItem('shop');
             if (s) shopName = JSON.parse(s).name || shopName;
@@ -885,7 +880,6 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
             `*Items Purchased:*\n${itemLines}\n\n` +
             `━━━━━━━━━━━━━━━━━━━━\n` +
             `Subtotal : ₹${(inv.subtotal ?? 0).toFixed(2)}\n` +
-            `GST (18%) : ₹${(inv.tax ?? 0).toFixed(2)}\n` +
             (inv.discountAmount > 0 ? `Discount : -₹${inv.discountAmount.toFixed(2)}\n` : '') +
             `*Total : ₹${inv.total.toFixed(2)}*\n` +
             `Payment : ${(inv.paymentMethod || '').toUpperCase()}\n` +
@@ -974,7 +968,6 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                 <div className="flex items-center justify-between gap-2 px-3 py-2.5 bg-slate-900 rounded-xl text-xs">
                   <div className="flex items-center gap-3 text-slate-400">
                     <span>Sub <span className="text-white font-semibold">₹{(inv.subtotal ?? 0).toFixed(2)}</span></span>
-                    <span>GST <span className="text-white font-semibold">₹{(inv.tax ?? 0).toFixed(2)}</span></span>
                     {inv.discountAmount > 0 && (
                       <span>Off <span className="text-red-400 font-semibold">-₹{inv.discountAmount.toFixed(2)}</span></span>
                     )}

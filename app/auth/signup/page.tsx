@@ -97,10 +97,11 @@ export default function SignupPage() {
         {/* Branding & Subtitle */}
         <div className="space-y-4 z-10">
           <h1 className="text-3xl font-bold tracking-tight font-sans text-white">
-            Nexurah BillEase
+            NexBill
           </h1>
           <p className="text-slate-300 text-sm max-w-sm leading-relaxed">
-            Get started in minutes. Setup your store profile, inventory parameters, and deploy your live billing terminal.
+            Get started in minutes. Setup your store profile, inventory
+            parameters, and deploy your live billing terminal.
           </p>
         </div>
 
@@ -112,7 +113,7 @@ export default function SignupPage() {
             {/* Graphic image */}
             <img
               src="/login_pos_tablet.png"
-              alt="Nexurah Billing POS System"
+              alt="NexBill POS System"
               className="w-full h-auto object-contain rounded-2xl shadow-2xl border border-white/5 transition-transform duration-700 hover:scale-102 relative z-10"
             />
           </div>
@@ -126,7 +127,9 @@ export default function SignupPage() {
               <ShieldCheck className="size-4" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Cloud Registration</h4>
+              <h4 className="text-sm font-semibold text-white">
+                Cloud Registration
+              </h4>
               <p className="text-xs text-slate-300 mt-0.5 leading-normal">
                 Encrypted terminal deployment & database isolation.
               </p>
@@ -135,7 +138,7 @@ export default function SignupPage() {
 
           {/* Copyright */}
           <p className="text-xs text-slate-400">
-            &copy; 2026 Nexurah POS Systems. All rights reserved.
+            &copy; 2026 NexBill Systems. All rights reserved.
           </p>
         </div>
       </div>
@@ -218,7 +221,7 @@ export default function SignupPage() {
                     name="shopName"
                     value={formData.shopName}
                     onChange={handleChange}
-                    placeholder="Nexurah Mart"
+                    placeholder="NexBill Store"
                     className="pr-10 h-10 rounded-lg border-slate-200 bg-white placeholder:text-slate-400 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/20 text-slate-900 text-xs"
                     required
                     disabled={loading}
@@ -276,7 +279,7 @@ export default function SignupPage() {
                 </label>
                 <div className="relative">
                   <Input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
@@ -288,9 +291,12 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer">
+                    {showPassword ? (
+                      <EyeOff className="size-3.5" />
+                    ) : (
+                      <Eye className="size-3.5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -302,7 +308,7 @@ export default function SignupPage() {
                 </label>
                 <div className="relative">
                   <Input
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
@@ -314,9 +320,12 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
-                  >
-                    {showConfirmPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer">
+                    {showConfirmPassword ? (
+                      <EyeOff className="size-3.5" />
+                    ) : (
+                      <Eye className="size-3.5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -326,10 +335,9 @@ export default function SignupPage() {
             <Button
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2 h-11 rounded-lg text-sm font-semibold transition-all shadow-sm hover:shadow-md cursor-pointer mt-6"
-              disabled={loading}
-            >
+              disabled={loading}>
               {loading ? (
-                'Registering terminal...'
+                "Registering terminal..."
               ) : (
                 <>
                   Create Account <ArrowRight className="size-4" />
@@ -341,7 +349,9 @@ export default function SignupPage() {
           {/* Divider */}
           <div className="relative flex items-center justify-center my-6">
             <Separator className="absolute w-full bg-slate-200/80" />
-            <span className="relative px-3 bg-[#f8fafc] text-xs text-slate-400 font-medium">Or</span>
+            <span className="relative px-3 bg-[#f8fafc] text-xs text-slate-400 font-medium">
+              Or
+            </span>
           </div>
 
           {/* Login button */}
@@ -349,8 +359,7 @@ export default function SignupPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-sm text-slate-600 font-medium flex items-center justify-center gap-2 transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-            >
+              className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-sm text-slate-600 font-medium flex items-center justify-center gap-2 transition-all shadow-2xs hover:shadow-xs cursor-pointer">
               <span>Already registered? Sign In to Terminal</span>
             </Button>
           </Link>
@@ -359,10 +368,14 @@ export default function SignupPage() {
         {/* Footer */}
         <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4 mt-auto pt-8 border-t border-slate-100">
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-slate-600 transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-slate-600 transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-slate-600 transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-slate-600 transition-colors">
               Terms of Service
             </Link>
           </div>

@@ -42,7 +42,7 @@ export default function InvoiceDetailPage({
   const { id } = use(params);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
-  const [shopName, setShopName] = useState('Nexurah BillEase');
+  const [shopName, setShopName] = useState("NexBill");
   const [shopAddress, setShopAddress] = useState('POS Terminal Branch #1');
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function InvoiceDetailPage({
       const shopData = localStorage.getItem('shop');
       if (shopData) {
         const parsed = JSON.parse(shopData);
-        setShopName(parsed.name || 'Nexurah BillEase');
+        setShopName(parsed.name || "NexBill");
         setShopAddress(parsed.address || 'POS Terminal Branch #1');
       }
     } catch (err) {
@@ -150,28 +150,33 @@ export default function InvoiceDetailPage({
       <div className="flex items-center justify-between border-b border-slate-200/60 pb-4 print:hidden select-none">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/billing">
-            <Button variant="outline" size="icon" className="rounded-xl border-slate-200 h-9 w-9 text-slate-600 hover:text-slate-900 cursor-pointer">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl border-slate-200 h-9 w-9 text-slate-600 hover:text-slate-900 cursor-pointer">
               <ArrowLeft size={15} />
             </Button>
           </Link>
           <div>
-            <h1 className="text-lg font-black text-slate-900 tracking-tight">Invoice Receipt</h1>
-            <p className="text-[10px] text-slate-500 mt-0.5">Receipt ID: {invoice.invoiceNumber}</p>
+            <h1 className="text-lg font-black text-slate-900 tracking-tight">
+              Invoice Receipt
+            </h1>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              Receipt ID: {invoice.invoiceNumber}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
             onClick={shareOnWhatsApp}
-            className="bg-emerald-605 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-9 px-3.5 font-bold text-xs gap-1.5 shadow-sm cursor-pointer animate-in fade-in slide-in-from-right-3 duration-300"
-          >
+            className="bg-emerald-605 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-9 px-3.5 font-bold text-xs gap-1.5 shadow-sm cursor-pointer animate-in fade-in slide-in-from-right-3 duration-300">
             <MessageCircle size={14} />
             Share WhatsApp
           </Button>
           <Button
             onClick={handlePrint}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-9 px-3.5 font-bold text-xs gap-1.5 shadow-sm cursor-pointer"
-          >
+            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-9 px-3.5 font-bold text-xs gap-1.5 shadow-sm cursor-pointer">
             <Printer size={14} />
             Print Receipt
           </Button>
@@ -191,17 +196,25 @@ export default function InvoiceDetailPage({
               <Receipt className="text-indigo-600 size-4.5" />
               {shopName}
             </h2>
-            <p className="text-[11px] text-slate-500 mt-1 max-w-xs leading-relaxed">{shopAddress}</p>
-            <p className="text-[9px] text-slate-400 font-mono mt-0.5 font-semibold uppercase tracking-wider">POS Registered GST Invoice</p>
+            <p className="text-[11px] text-slate-500 mt-1 max-w-xs leading-relaxed">
+              {shopAddress}
+            </p>
+            <p className="text-[9px] text-slate-400 font-mono mt-0.5 font-semibold uppercase tracking-wider">
+              Retail POS Invoice
+            </p>
           </div>
 
           {/* Status stamp overlay */}
           <div className="sm:text-right flex flex-col sm:items-end gap-1.5">
-            <span className={`inline-flex items-center justify-center border px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider select-none ${getStatusStampColors(invoice.paymentStatus)}`}>
+            <span
+              className={`inline-flex items-center justify-center border px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider select-none ${getStatusStampColors(invoice.paymentStatus)}`}>
               {invoice.paymentStatus}
             </span>
             <p className="text-[9px] text-slate-400 font-mono">
-              Method: <span className="font-bold text-slate-800 capitalize">{invoice.paymentMethod}</span>
+              Method:{" "}
+              <span className="font-bold text-slate-800 capitalize">
+                {invoice.paymentMethod}
+              </span>
             </p>
           </div>
         </div>
@@ -219,16 +232,22 @@ export default function InvoiceDetailPage({
             </h3>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <p className="text-[8px] text-slate-400 uppercase font-semibold">Receipt No</p>
-                <p className="text-xs font-bold text-slate-900 mt-0.5">{invoice.invoiceNumber}</p>
+                <p className="text-[8px] text-slate-400 uppercase font-semibold">
+                  Receipt No
+                </p>
+                <p className="text-xs font-bold text-slate-900 mt-0.5">
+                  {invoice.invoiceNumber}
+                </p>
               </div>
               <div>
-                <p className="text-[8px] text-slate-400 uppercase font-semibold">Date</p>
+                <p className="text-[8px] text-slate-400 uppercase font-semibold">
+                  Date
+                </p>
                 <p className="text-xs font-bold text-slate-900 mt-0.5">
-                  {new Date(invoice.createdAt).toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
+                  {new Date(invoice.createdAt).toLocaleDateString("en-IN", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
                   })}
                 </p>
               </div>
@@ -242,10 +261,16 @@ export default function InvoiceDetailPage({
               BILL TO CUSTOMER
             </h3>
             <div>
-              <p className="text-xs font-bold text-slate-900">{invoice.customer.name}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Phone: {invoice.customer.phone}</p>
+              <p className="text-xs font-bold text-slate-900">
+                {invoice.customer.name}
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Phone: {invoice.customer.phone}
+              </p>
               {invoice.customer.email && (
-                <p className="text-xs text-slate-500 mt-0.5">Email: {invoice.customer.email}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Email: {invoice.customer.email}
+                </p>
               )}
             </div>
           </div>
@@ -265,9 +290,6 @@ export default function InvoiceDetailPage({
                 <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-24">
                   Unit Price
                 </th>
-                <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-20">
-                  GST Tax
-                </th>
                 <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-24">
                   Subtotal
                 </th>
@@ -275,22 +297,23 @@ export default function InvoiceDetailPage({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {invoice.items.map((item, index) => (
-                <tr key={index} className="hover:bg-slate-50/50 transition-colors">
+                <tr
+                  key={index}
+                  className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-3 py-2 text-xs text-slate-900">
                     <p className="font-bold flex items-center gap-1.5">
                       <ShoppingBag size={11} className="text-slate-400" />
                       {item.product.name}
                     </p>
-                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 pl-4.5">{item.product.sku}</p>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 pl-4.5">
+                      {item.product.sku}
+                    </p>
                   </td>
                   <td className="px-3 py-2 text-center text-xs font-bold text-slate-950">
                     {item.quantity}
                   </td>
                   <td className="px-3 py-2 text-right text-xs text-slate-600 font-medium">
                     ₹{item.price.toFixed(2)}
-                  </td>
-                  <td className="px-3 py-2 text-right text-xs text-slate-600 font-medium">
-                    ₹{item.tax.toFixed(2)}
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-black text-slate-900">
                     ₹{item.subtotal.toFixed(2)}
@@ -306,8 +329,12 @@ export default function InvoiceDetailPage({
           <div className="sm:col-span-6 flex flex-col justify-end">
             {invoice.notes && (
               <div className="p-3 bg-slate-50 border border-slate-200/40 rounded-xl max-w-xs">
-                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Receipt Notes</p>
-                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{invoice.notes}</p>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                  Receipt Notes
+                </p>
+                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  {invoice.notes}
+                </p>
               </div>
             )}
           </div>
@@ -315,11 +342,9 @@ export default function InvoiceDetailPage({
           <div className="sm:col-span-6 space-y-1.5 border-t sm:border-t-0 sm:pt-0 pt-3 text-xs">
             <div className="flex justify-between text-slate-500">
               <span>Items Subtotal:</span>
-              <span className="font-semibold text-slate-800">₹{invoice.subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-slate-500">
-              <span>GST Tax (18% applied):</span>
-              <span className="font-semibold text-slate-800">₹{invoice.taxAmount.toFixed(2)}</span>
+              <span className="font-semibold text-slate-800">
+                ₹{invoice.subtotal.toFixed(2)}
+              </span>
             </div>
             {invoice.discountAmount > 0 && (
               <div className="flex justify-between text-red-500 font-bold">
@@ -328,8 +353,12 @@ export default function InvoiceDetailPage({
               </div>
             )}
             <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
-              <span className="text-slate-900 font-extrabold text-xs">Grand Total:</span>
-              <span className="text-lg font-black text-indigo-600 tracking-tight">₹{invoice.total.toFixed(2)}</span>
+              <span className="text-slate-900 font-extrabold text-xs">
+                Grand Total:
+              </span>
+              <span className="text-lg font-black text-indigo-600 tracking-tight">
+                ₹{invoice.total.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
@@ -339,7 +368,10 @@ export default function InvoiceDetailPage({
           {/* Mock premium POS barcode */}
           <div className="flex flex-col items-center justify-center gap-1 opacity-75 print:opacity-100">
             <div className="flex items-center gap-[1.5px] h-7 bg-white">
-              {[2,1,3,1,2,2,1,4,1,2,3,1,2,1,3,2,1,2,1,4,1,2,1,3,2].map((w, i) => (
+              {[
+                2, 1, 3, 1, 2, 2, 1, 4, 1, 2, 3, 1, 2, 1, 3, 2, 1, 2, 1, 4, 1,
+                2, 1, 3, 2,
+              ].map((w, i) => (
                 <div
                   key={i}
                   className="h-full bg-slate-900"
@@ -347,14 +379,18 @@ export default function InvoiceDetailPage({
                 />
               ))}
             </div>
-            <p className="text-[7.5px] font-mono tracking-widest uppercase text-slate-500 font-bold">*{invoice.invoiceNumber}*</p>
+            <p className="text-[7.5px] font-mono tracking-widest uppercase text-slate-500 font-bold">
+              *{invoice.invoiceNumber}*
+            </p>
           </div>
 
           <div>
             <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-widest">
               Thank you for shopping with us!
             </p>
-            <p className="text-[7.5px] text-slate-400 mt-0.5">Generated by Nexurah BillEase Cloud POS Terminal</p>
+            <p className="text-[7.5px] text-slate-400 mt-0.5">
+              Generated by NexBill Cloud POS Terminal
+            </p>
           </div>
         </div>
       </Card>

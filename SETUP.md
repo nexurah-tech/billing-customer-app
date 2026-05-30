@@ -1,6 +1,6 @@
-# BillEase Setup Guide
+# NexBill Setup Guide
 
-Complete guide to setting up and running the BillEase POS Billing System.
+Complete guide to setting up and running the NexBill POS Billing System.
 
 ## Prerequisites
 
@@ -167,7 +167,7 @@ Repeat for all your customers.
 ## Project Structure Overview
 
 ```
-BillEase/
+NexBill/
 ├── app/                 # Next.js app directory
 │   ├── api/            # Backend API routes
 │   ├── auth/           # Authentication pages

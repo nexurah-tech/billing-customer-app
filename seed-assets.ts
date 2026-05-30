@@ -125,27 +125,27 @@ async function seed() {
 
       shop = new Shop({
         _id: tempShopId,
-        name: 'Nexurah BillEase',
-        address: 'POS Terminal Branch #1, Chennai, IN',
-        phone: '919600950190',
-        email: 'admin@nexurah.com',
+        name: "NexBill",
+        address: "POS Terminal Branch #1, Chennai, IN",
+        phone: "919600950190",
+        email: "admin@nexurah.com",
         owner: tempUserId,
-        gstin: '33AAAAA1111A1Z1',
+        gstin: "33AAAAA1111A1Z1",
       });
       await shop.save();
-      console.log('Created default shop: Nexurah BillEase');
+      console.log("Created default shop: NexBill");
     } else if (!shop) {
       console.log('Owner exists but no shop found. Creating default shop...');
       shop = new Shop({
-        name: 'Nexurah BillEase',
-        address: 'POS Terminal Branch #1, Chennai, IN',
-        phone: '919600950190',
-        email: 'admin@nexurah.com',
+        name: "NexBill",
+        address: "POS Terminal Branch #1, Chennai, IN",
+        phone: "919600950190",
+        email: "admin@nexurah.com",
         owner: user._id,
-        gstin: '33AAAAA1111A1Z1',
+        gstin: "33AAAAA1111A1Z1",
       });
       await shop.save();
-      console.log('Created default shop: Nexurah BillEase');
+      console.log("Created default shop: NexBill");
       
       user.shop = shop._id;
       await user.save();

@@ -143,8 +143,6 @@ export async function POST(request: NextRequest) {
         },
       }));
 
-    const taxRate = (settings.taxRates?.standard ?? 18) / 100;
-
     let subtotal = 0;
     let taxAmount = 0;
     const processedItems = [];
@@ -171,10 +169,9 @@ export async function POST(request: NextRequest) {
       }
 
       const itemSubtotal = product.unitPrice * item.quantity;
-      const itemTax = product.taxApplicable ? itemSubtotal * taxRate : 0;
+      const itemTax = 0;
 
       subtotal += itemSubtotal;
-      taxAmount += itemTax;
 
       processedItems.push({
         product: product._id,
@@ -189,8 +186,7 @@ export async function POST(request: NextRequest) {
       await product.save();
     }
 
-    const total =
-      subtotal + taxAmount - (discountAmount || 0);
+    const total = subtotal - (discountAmount || 0);
 
     let invoiceNumber = await generateInvoiceNumber(auth.shopId);
     let invoice;

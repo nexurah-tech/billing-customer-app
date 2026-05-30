@@ -27,7 +27,7 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [shopName, setShopName] = useState('BillEase POS');
+  const [shopName, setShopName] = useState("NexBill POS");
   const [shopEmail, setShopEmail] = useState('cashier@terminal.com');
   const [initials, setInitials] = useState('CP');
 
@@ -36,7 +36,7 @@ export function Sidebar() {
       const shopData = localStorage.getItem('shop');
       if (shopData) {
         const parsed = JSON.parse(shopData);
-        const name = parsed.name || 'Nexurah Shop';
+        const name = parsed.name || "NexBill Shop";
         setShopName(name);
         setShopEmail(parsed.email || 'cashier@terminal.com');
         
@@ -69,7 +69,7 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white tracking-wide leading-none">
-              Nexurah <span className="text-indigo-400">BillEase</span>
+              NexBill
             </h1>
             <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-semibold flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-ping"></span>
@@ -83,9 +83,10 @@ export function Sidebar() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             // Handle active checks for exact dashboard and nested pages
-            const isActive = item.href === '/dashboard' 
-              ? pathname === '/dashboard'
-              : pathname.startsWith(item.href);
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
 
             return (
               <Link
@@ -93,18 +94,21 @@ export function Sidebar() {
                 href={item.href}
                 className={`group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 relative ${
                   isActive
-                    ? 'bg-indigo-600/10 text-white border-l-2 border-indigo-500 pl-3.5 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 hover:pl-5'
-                }`}
-              >
+                    ? "bg-indigo-600/10 text-white border-l-2 border-indigo-500 pl-3.5 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 hover:pl-5"
+                }`}>
                 <div className="flex items-center gap-3">
-                  <Icon 
-                    size={19} 
+                  <Icon
+                    size={19}
                     className={`transition-transform duration-300 group-hover:scale-105 ${
-                      isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-indigo-400'
-                    }`} 
+                      isActive
+                        ? "text-indigo-400"
+                        : "text-slate-400 group-hover:text-indigo-400"
+                    }`}
                   />
-                  <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                  <span className="text-sm font-medium tracking-wide">
+                    {item.label}
+                  </span>
                 </div>
                 {isActive && (
                   <span className="w-1 h-1 rounded-full bg-indigo-400 shadow-glow" />
@@ -127,7 +131,9 @@ export function Sidebar() {
               <Store size={12} className="text-slate-500" />
               {shopName}
             </h4>
-            <p className="text-[10px] text-slate-500 truncate font-mono mt-0.5">{shopEmail}</p>
+            <p className="text-[10px] text-slate-500 truncate font-mono mt-0.5">
+              {shopEmail}
+            </p>
           </div>
         </div>
 
@@ -135,8 +141,7 @@ export function Sidebar() {
         <Button
           onClick={handleLogout}
           variant="ghost"
-          className="w-full flex items-center gap-2 justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/20 border border-slate-800/80 hover:border-red-500/20 h-10 rounded-xl text-xs font-semibold transition-all duration-300"
-        >
+          className="w-full flex items-center gap-2 justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/20 border border-slate-800/80 hover:border-red-500/20 h-10 rounded-xl text-xs font-semibold transition-all duration-300">
           <LogOut size={15} />
           Sign out cashier
         </Button>

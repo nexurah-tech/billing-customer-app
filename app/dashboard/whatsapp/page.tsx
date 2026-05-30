@@ -22,7 +22,8 @@ export default function WhatsAppPage() {
             WhatsApp Notification Gateway
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Dispatch automated receipts, low stock alerts, and seasonal offers instantly to customer devices
+            Dispatch automated receipts, low stock alerts, and seasonal offers
+            instantly to customer devices
           </p>
         </div>
 
@@ -34,7 +35,9 @@ export default function WhatsAppPage() {
       {/* Visual Roadmap Stepper */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {setupSteps.map((step) => (
-          <Card key={step.num} className="p-5 border-slate-200/80 shadow-2xs flex flex-col justify-between gap-4 relative group">
+          <Card
+            key={step.num}
+            className="p-5 border-slate-200/80 shadow-2xs flex flex-col justify-between gap-4 relative group">
             <div className="flex justify-between items-start">
               <span className="text-2xl font-black text-slate-200 group-hover:text-indigo-500/20 transition-colors">
                 {step.num}
@@ -42,8 +45,12 @@ export default function WhatsAppPage() {
               <CheckCircle2 size={16} className="text-slate-300" />
             </div>
             <div>
-              <h4 className="text-xs font-extrabold text-slate-800 leading-snug">{step.title}</h4>
-              <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">{step.desc}</p>
+              <h4 className="text-xs font-extrabold text-slate-800 leading-snug">
+                {step.title}
+              </h4>
+              <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                {step.desc}
+              </p>
             </div>
           </Card>
         ))}
@@ -58,12 +65,16 @@ export default function WhatsAppPage() {
               <Key className="text-indigo-500 size-4.5" />
               Twilio API Keys
             </h3>
-            <p className="text-[11px] text-slate-500">Gateway credentials loaded from environment variables</p>
+            <p className="text-[11px] text-slate-500">
+              Gateway credentials loaded from environment variables
+            </p>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Account SID</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Account SID
+              </label>
               <input
                 type="text"
                 value="AC••••••••••••••••••••••••••••••••"
@@ -72,7 +83,9 @@ export default function WhatsAppPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Auth Token</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Auth Token
+              </label>
               <input
                 type="password"
                 value="••••••••••••••••••••••••••••••••"
@@ -81,7 +94,9 @@ export default function WhatsAppPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">WhatsApp Sender Phone</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                WhatsApp Sender Phone
+              </label>
               <input
                 type="text"
                 value="+1 (415) 523-8886 (Twilio Sandbox)"
@@ -95,9 +110,13 @@ export default function WhatsAppPage() {
           <div className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200/40 rounded-xl">
             <ShieldCheck className="text-indigo-500 size-5 shrink-0 mt-0.5" />
             <div>
-              <h5 className="text-xs font-bold text-slate-800">Connection Security</h5>
+              <h5 className="text-xs font-bold text-slate-800">
+                Connection Security
+              </h5>
               <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
-                Credentials can only be adjusted directly inside the secure system environment file (`.env.local`). Please contact your terminal system administrator to unlock settings.
+                Credentials can only be adjusted directly inside the secure
+                system environment file (`.env.local`). Please contact your
+                terminal system administrator to unlock settings.
               </p>
             </div>
           </div>
@@ -110,7 +129,9 @@ export default function WhatsAppPage() {
               <Smartphone className="text-indigo-500 size-4.5" />
               Receipt Notification Preview
             </h3>
-            <p className="text-[11px] text-slate-500">Real-time mock preview on consumer devices</p>
+            <p className="text-[11px] text-slate-500">
+              Real-time mock preview on consumer devices
+            </p>
           </div>
 
           {/* Mobile phone outline frame */}
@@ -128,12 +149,14 @@ export default function WhatsAppPage() {
                   NB
                 </div>
                 <div>
-                  <h6 className="text-[9px] font-bold leading-none">BillEase Receipts</h6>
-                  <p className="text-[6px] text-emerald-300 font-medium leading-none mt-0.5">Official POS Terminal</p>
+                  <h6 className="text-[9px] font-bold leading-none">
+                    NexBill Receipts
+                  </h6>
+                  <p className="text-[6px] text-emerald-300 font-medium leading-none mt-0.5">
+                    Official POS Terminal
+                  </p>
                 </div>
               </div>
-
-              {/* Chat Body messages list */}
               <div className="flex-1 flex flex-col justify-end pt-8 gap-3">
                 {/* Chat Timestamp */}
                 <span className="text-[7px] bg-slate-25 bg-slate-200/80 text-slate-600 px-2 py-0.5 rounded-md font-bold self-center shadow-3xs uppercase tracking-wider select-none">
@@ -142,19 +165,35 @@ export default function WhatsAppPage() {
 
                 {/* WhatsApp Chat Bubble */}
                 <div className="bg-white p-3 rounded-2xl rounded-tl-xs text-[9px] max-w-[90%] shadow-2xs leading-relaxed text-slate-800 self-start">
-                  <p className="font-extrabold text-indigo-700 select-none">Nexurah Mart Receipt 🧾</p>
-                  <p className="mt-1">
-                    Hello <span className="font-bold">John Doe</span>, thanks for shopping with us!
+                  <p className="font-extrabold text-indigo-700 select-none">
+                    NexBill Receipt 🧾
                   </p>
                   <p className="mt-1">
-                    Your invoice <span className="font-bold">#INV-2026-004</span> is ready.
+                    Hello <span className="font-bold">John Doe</span>, thanks
+                    for shopping with us!
+                  </p>
+                  <p className="mt-1">
+                    Your invoice{" "}
+                    <span className="font-bold">#INV-2026-004</span> is ready.
                   </p>
                   <div className="mt-2 p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[8px] space-y-0.5">
-                    <div className="flex justify-between"><span className="text-slate-400">Items Count:</span><span className="font-semibold">3 units</span></div>
-                    <div className="flex justify-between"><span className="text-slate-400">Total Bill:</span><span className="font-bold text-slate-900">₹1,480.00</span></div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Items Count:</span>
+                      <span className="font-semibold">3 units</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Total Bill:</span>
+                      <span className="font-bold text-slate-900">
+                        ₹1,480.00
+                      </span>
+                    </div>
                   </div>
-                  <p className="mt-2 text-slate-400 select-none text-[7px]">View full PDF receipt link: https://nex.bi/r/7f2a</p>
-                  <span className="text-[6px] text-slate-400 text-right block mt-1.5 select-none font-mono">10:18 AM ✓✓</span>
+                  <p className="mt-2 text-slate-400 select-none text-[7px]">
+                    View full PDF receipt link: https://nex.bi/r/7f2a
+                  </p>
+                  <span className="text-[6px] text-slate-400 text-right block mt-1.5 select-none font-mono">
+                    10:18 AM ✓✓
+                  </span>
                 </div>
               </div>
             </div>

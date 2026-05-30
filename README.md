@@ -1,4 +1,4 @@
-# BillEase - POS Billing System
+# NexBill - POS Billing System
 
 A complete shop owner billing and inventory management system built with Next.js 16, MongoDB, and modern web technologies.
 

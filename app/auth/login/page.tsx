@@ -64,10 +64,11 @@ export default function LoginPage() {
         {/* Branding & Subtitle */}
         <div className="space-y-4 z-10">
           <h1 className="text-3xl font-bold tracking-tight font-sans text-white">
-            Nexurah Billing
+            NexBill
           </h1>
           <p className="text-slate-300 text-sm max-w-sm leading-relaxed">
-            Systematic precision for high-velocity retail environments. Fast, reliable, and built for your growth.
+            Systematic precision for high-velocity retail environments. Fast,
+            reliable, and built for your growth.
           </p>
         </div>
 
@@ -79,7 +80,7 @@ export default function LoginPage() {
             {/* Graphic image */}
             <img
               src="/login_pos_tablet.png"
-              alt="Nexurah Billing POS System"
+              alt="NexBill POS System"
               className="w-full h-auto object-contain rounded-2xl shadow-2xl border border-white/5 transition-transform duration-700 hover:scale-102 relative z-10"
             />
           </div>
@@ -93,7 +94,9 @@ export default function LoginPage() {
               <ShieldCheck className="size-4" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Security Protocol</h4>
+              <h4 className="text-sm font-semibold text-white">
+                Security Protocol
+              </h4>
               <p className="text-xs text-slate-300 mt-0.5 leading-normal">
                 Enterprise-grade encryption for every transaction.
               </p>
@@ -102,7 +105,7 @@ export default function LoginPage() {
 
           {/* Copyright */}
           <p className="text-xs text-slate-400">
-            &copy; 2024 Nexurah POS Systems. All rights reserved.
+            &copy; 2024 NexBill Systems. All rights reserved.
           </p>
         </div>
       </div>
@@ -158,14 +161,13 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs text-[#026aa2] hover:text-[#025a8a] hover:underline font-semibold"
-                >
+                  className="text-xs text-[#026aa2] hover:text-[#025a8a] hover:underline font-semibold">
                   Forgot Password?
                 </Link>
               </div>
               <div className="relative">
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -176,8 +178,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
-                >
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer">
                   {showPassword ? (
                     <EyeOff className="size-4" />
                   ) : (
@@ -189,11 +190,13 @@ export default function LoginPage() {
 
             {/* Keep me logged in checkbox */}
             <div className="flex items-center space-x-2.5 pt-1">
-              <Checkbox id="remember" className="border-slate-300 rounded-[4px] data-[state=checked]:bg-[#026aa2] data-[state=checked]:border-[#026aa2] cursor-pointer" />
+              <Checkbox
+                id="remember"
+                className="border-slate-300 rounded-[4px] data-[state=checked]:bg-[#026aa2] data-[state=checked]:border-[#026aa2] cursor-pointer"
+              />
               <label
                 htmlFor="remember"
-                className="text-xs text-slate-500 font-medium select-none cursor-pointer"
-              >
+                className="text-xs text-slate-500 font-medium select-none cursor-pointer">
                 Keep me logged in on this terminal
               </label>
             </div>
@@ -202,10 +205,9 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-[#026aa2] hover:bg-[#025a8a] text-white flex items-center justify-center gap-2 h-11 rounded-lg text-sm font-semibold transition-all shadow-sm hover:shadow-md cursor-pointer mt-6"
-              disabled={loading}
-            >
+              disabled={loading}>
               {loading ? (
-                'Signing in...'
+                "Signing in..."
               ) : (
                 <>
                   Login <ArrowRight className="size-4" />
@@ -217,14 +219,15 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative flex items-center justify-center my-6">
             <Separator className="absolute w-full bg-slate-200/80" />
-            <span className="relative px-3 bg-[#f8fafc] text-xs text-slate-400 font-medium">Or</span>
+            <span className="relative px-3 bg-[#f8fafc] text-xs text-slate-400 font-medium">
+              Or
+            </span>
           </div>
 
           {/* Support button */}
           <button
             type="button"
-            className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-sm text-slate-600 font-medium flex items-center justify-center gap-2 transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-          >
+            className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-sm text-slate-600 font-medium flex items-center justify-center gap-2 transition-all shadow-2xs hover:shadow-xs cursor-pointer">
             <HelpCircle className="size-4 text-slate-500" />
             <span>Don&apos;t have an account? Contact Support</span>
           </button>
@@ -233,10 +236,14 @@ export default function LoginPage() {
         {/* Footer with links and system status */}
         <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4 mt-auto pt-8 border-t border-slate-100">
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-slate-600 transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-slate-600 transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-slate-600 transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-slate-600 transition-colors">
               Terms of Service
             </Link>
           </div>

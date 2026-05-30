@@ -21,20 +21,24 @@ interface Invoice {
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 8;
 
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    fetchInvoices(page);
+  }, [page]);
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = async (pageNumber: number) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/invoices', {
+      const response = await fetch(`/api/invoices?page=${pageNumber}&limit=${pageSize}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
       if (data.success) {
         setInvoices(data.data.invoices);
+        setTotalPages(data.data.pagination?.pages || 1);
       }
     } catch (err) {
       console.error('Error fetching invoices:', err);
@@ -70,18 +74,18 @@ export default function BillingPage() {
       day: 'numeric',
     });
     
-    let shopName = 'Nexurah BillEase';
+    let shopName = 'NexBill';
     try {
       const shopData = localStorage.getItem('shop');
       if (shopData) {
         const parsed = JSON.parse(shopData);
-        shopName = parsed.name || 'Nexurah BillEase';
+        shopName = parsed.name || 'NexBill';
       }
     } catch (err) {
       console.error(err);
     }
     
-    const message = `Hello *${invoice.customer.name || 'Nexurah Customer'}*,\n\n` +
+    const message = `Hello *${invoice.customer.name || 'NexBill Customer'}*,\n\n` +
       `Thanks for shopping with us at *${shopName}*!\n\n` +
       `Here is a summary of your invoice *${invoice.invoiceNumber}*:\n` +
       `----------------------------\n` +
@@ -281,6 +285,34 @@ export default function BillingPage() {
             </table>
           </div>
         </Card>
+      )}
+
+      {!loading && invoices.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-4 bg-white border-t border-slate-200 rounded-b-2xl shadow-sm">
+          <p className="text-[11px] text-slate-500">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page === 1}
+              variant="secondary"
+              size="sm"
+              className="rounded-full px-3"
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={page === totalPages}
+              variant="secondary"
+              size="sm"
+              className="rounded-full px-3"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

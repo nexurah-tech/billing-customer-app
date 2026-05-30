@@ -216,8 +216,12 @@ export default function SettingsPage() {
                   {initials}
                 </div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900">{form.name || 'Active Shop Terminal'}</h3>
-                  <p className="text-[10px] text-slate-500 mt-1 font-mono">{form.email || 'cashier@terminal.com'}</p>
+                  <h3 className="text-sm font-extrabold text-slate-900">
+                    {form.name || "Active Shop Terminal"}
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-1 font-mono">
+                    {form.email || "cashier@terminal.com"}
+                  </p>
                 </div>
               </div>
 
@@ -231,7 +235,7 @@ export default function SettingsPage() {
                     <Input
                       type="text"
                       value={form.name}
-                      onChange={(e) => handleChange('name', e.target.value)}
+                      onChange={(e) => handleChange("name", e.target.value)}
                       placeholder="Your shop name"
                       className="border-slate-200 text-xs font-semibold h-10 rounded-xl focus-visible:border-indigo-500 bg-white text-slate-900"
                     />
@@ -263,7 +267,7 @@ export default function SettingsPage() {
                     <Input
                       type="tel"
                       value={form.phone}
-                      onChange={(e) => handleChange('phone', e.target.value)}
+                      onChange={(e) => handleChange("phone", e.target.value)}
                       placeholder="+91 98765 43210"
                       className="border-slate-200 text-xs font-semibold h-10 rounded-xl focus-visible:border-indigo-500 bg-white text-slate-900"
                     />
@@ -277,7 +281,9 @@ export default function SettingsPage() {
                     <Input
                       type="text"
                       value={form.gstin}
-                      onChange={(e) => handleChange('gstin', e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        handleChange("gstin", e.target.value.toUpperCase())
+                      }
                       placeholder="27AABCU9603R1Z0"
                       className="border-slate-200 text-xs font-mono h-10 rounded-xl focus-visible:border-indigo-500 bg-white text-slate-900"
                     />
@@ -292,7 +298,7 @@ export default function SettingsPage() {
                   <Input
                     type="text"
                     value={form.address}
-                    onChange={(e) => handleChange('address', e.target.value)}
+                    onChange={(e) => handleChange("address", e.target.value)}
                     placeholder="123 Main Street, City, State - 600001"
                     className="border-slate-200 text-xs font-semibold h-10 rounded-xl focus-visible:border-indigo-500 bg-white text-slate-900"
                   />
@@ -310,7 +316,8 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-2.5 p-3.5 bg-indigo-50/40 border border-indigo-100/30 rounded-xl">
                   <Info size={14} className="text-indigo-500 shrink-0 mt-0.5" />
                   <p className="text-[10px] text-indigo-900 leading-relaxed font-semibold">
-                    Terminal Email is locked to your registered account. To change ownership or email, contact Nexurah POS support.
+                    Terminal Email is locked to your registered account. To
+                    change ownership or email, contact NexBill support.
                   </p>
                 </div>
 
@@ -320,16 +327,22 @@ export default function SettingsPage() {
                   disabled={saving}
                   className={`w-full h-10 rounded-xl text-xs font-bold gap-2 transition-all cursor-pointer ${
                     saved
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  }`}
-                >
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  }`}>
                   {saving ? (
-                    <><Loader2 size={15} className="animate-spin" /> Saving Changes...</>
+                    <>
+                      <Loader2 size={15} className="animate-spin" /> Saving
+                      Changes...
+                    </>
                   ) : saved ? (
-                    <><CheckCircle2 size={15} /> Changes Saved!</>
+                    <>
+                      <CheckCircle2 size={15} /> Changes Saved!
+                    </>
                   ) : (
-                    <><Save size={15} /> Save Shop Profile</>
+                    <>
+                      <Save size={15} /> Save Shop Profile
+                    </>
                   )}
                 </Button>
               </div>
@@ -341,8 +354,12 @@ export default function SettingsPage() {
         <div className="md:col-span-5 space-y-6">
           <Card className="p-6 border-slate-200/80 shadow-xs space-y-4">
             <div>
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">System Configurations</h3>
-              <p className="text-[10px] text-slate-400 mt-1">Configure active terminal algorithms</p>
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                System Configurations
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Configure active terminal algorithms
+              </p>
             </div>
 
             <div className="space-y-3.5">
@@ -352,12 +369,19 @@ export default function SettingsPage() {
                     <FileSpreadsheet size={15} />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-slate-800">Invoice Numbers</h5>
-                    <p className="text-[9px] text-slate-400 mt-0.5">Prefix: {config.invoicePrefix || 'INV'}</p>
+                    <h5 className="text-xs font-bold text-slate-800">
+                      Invoice Numbers
+                    </h5>
+                    <p className="text-[9px] text-slate-400 mt-0.5">
+                      Prefix: {config.invoicePrefix || "INV"}
+                    </p>
                   </div>
                 </div>
-                <span className={`text-[9px] ${config.invoiceAutoSequence ? 'bg-indigo-50 text-indigo-700 border border-indigo-100/40' : 'bg-slate-100 text-slate-500 border border-slate-200/80'} px-2 py-0.5 rounded-full font-bold`}>
-                  {config.invoiceAutoSequence ? 'Auto Sequence' : 'Manual Sequence'}
+                <span
+                  className={`text-[9px] ${config.invoiceAutoSequence ? "bg-indigo-50 text-indigo-700 border border-indigo-100/40" : "bg-slate-100 text-slate-500 border border-slate-200/80"} px-2 py-0.5 rounded-full font-bold`}>
+                  {config.invoiceAutoSequence
+                    ? "Auto Sequence"
+                    : "Manual Sequence"}
                 </span>
               </div>
 
@@ -367,8 +391,12 @@ export default function SettingsPage() {
                     <Percent size={15} />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-slate-800">Tax System</h5>
-                    <p className="text-[9px] text-slate-400 mt-0.5">{config.taxRate}% {config.taxSystem} (Default)</p>
+                    <h5 className="text-xs font-bold text-slate-800">
+                      Tax System
+                    </h5>
+                    <p className="text-[9px] text-slate-400 mt-0.5">
+                      {config.taxRate}% {config.taxSystem} (Default)
+                    </p>
                   </div>
                 </div>
                 <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200/40 px-2 py-0.5 rounded-full font-bold">
@@ -382,14 +410,19 @@ export default function SettingsPage() {
                     <Bell size={15} />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-slate-800">Alert Messages</h5>
+                    <h5 className="text-xs font-bold text-slate-800">
+                      Alert Messages
+                    </h5>
                     <p className="text-[9px] text-slate-400 mt-0.5">
-                      {config.whatsappEnabled ? 'WhatsApp enabled' : 'WhatsApp disabled'}
+                      {config.whatsappEnabled
+                        ? "WhatsApp enabled"
+                        : "WhatsApp disabled"}
                     </p>
                   </div>
                 </div>
-                <span className={`text-[9px] ${config.whatsappEnabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/40' : 'bg-slate-100 text-slate-500 border border-slate-200/80'} px-2 py-0.5 rounded-full font-bold`}>
-                  {config.whatsappEnabled ? 'Enabled' : 'Disabled'}
+                <span
+                  className={`text-[9px] ${config.whatsappEnabled ? "bg-emerald-50 text-emerald-700 border border-emerald-200/40" : "bg-slate-100 text-slate-500 border border-slate-200/80"} px-2 py-0.5 rounded-full font-bold`}>
+                  {config.whatsappEnabled ? "Enabled" : "Disabled"}
                 </span>
               </div>
             </div>
