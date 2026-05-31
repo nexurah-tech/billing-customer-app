@@ -11,37 +11,39 @@ import {
   MessageCircle,
   Settings,
   LogOut,
-  Terminal,
   Store,
+  ChevronRight,
+  Zap,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-const menuItems = [
+const primaryNav = [
   { label: 'Dashboard', href: '/dashboard', icon: BarChart3 },
+  { label: 'Quick Bill POS', href: '/dashboard/quickbill', icon: Zap },
   { label: 'Billing POS', href: '/dashboard/billing', icon: ShoppingCart },
   { label: 'Products Catalogue', href: '/dashboard/products', icon: Package },
   { label: 'Customers Registry', href: '/dashboard/customers', icon: Users },
+];
+
+const secondaryNav = [
   { label: 'WhatsApp POS', href: '/dashboard/whatsapp', icon: MessageCircle },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [shopName, setShopName] = useState("NexBill POS");
+  const [shopName, setShopName] = useState('NexBill Shop');
   const [shopEmail, setShopEmail] = useState('cashier@terminal.com');
-  const [initials, setInitials] = useState('CP');
+  const [initials, setInitials] = useState('NB');
 
   useEffect(() => {
     try {
       const shopData = localStorage.getItem('shop');
       if (shopData) {
         const parsed = JSON.parse(shopData);
-        const name = parsed.name || "NexBill Shop";
+        const name = parsed.name || 'NexBill Shop';
         setShopName(name);
         setShopEmail(parsed.email || 'cashier@terminal.com');
-        
-        // Extract initials
-        const parts = name.split(' ');
+        const parts = name.trim().split(' ');
         if (parts.length >= 2) {
           setInitials((parts[0][0] + parts[1][0]).toUpperCase());
         } else {
@@ -59,94 +61,134 @@ export function Sidebar() {
     window.location.href = '/auth/login';
   };
 
-  return (
-    <div className="w-64 bg-slate-900 border-r border-slate-800 min-h-screen flex flex-col justify-between text-slate-300 font-sans select-none">
-      <div>
-        {/* Branding badge */}
-        <div className="p-6 border-b border-slate-800/80 flex items-center gap-3">
-          <div className="p-2 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-indigo-400 shadow-inner">
-            <Terminal size={22} className="animate-pulse" />
+  const isActive = (href: string) =>
+    href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
+
+  const NavItem = ({ item }: { item: { label: string; href: string; icon: any } }) => {
+    const Icon = item.icon;
+    const active = isActive(item.href);
+    return (
+      <Link
+        href={item.href}
+        className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 ${
+          active
+            ? 'bg-sky-500/10 text-white border border-sky-500/20'
+            : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] border border-transparent'
+        }`}
+      >
+        {/* Active left bar */}
+        {active && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-sky-400" />
+        )}
+
+        <div className="flex items-center gap-3 pl-1">
+          <div className={`p-1.5 rounded-lg transition-all duration-200 ${
+            active
+              ? 'bg-sky-500/15 text-sky-400'
+              : 'text-slate-500 group-hover:text-slate-300 group-hover:bg-white/[0.05]'
+          }`}>
+            <Icon size={15} />
           </div>
+          <span className={`text-[13px] font-semibold tracking-wide ${
+            active ? 'text-white' : 'group-hover:text-slate-200'
+          }`}>
+            {item.label}
+          </span>
+        </div>
+
+        <ChevronRight
+          size={12}
+          className={`transition-all duration-200 ${
+            active
+              ? 'text-sky-400 opacity-100'
+              : 'text-slate-600 opacity-0 group-hover:opacity-60'
+          }`}
+        />
+      </Link>
+    );
+  };
+
+  return (
+    <div className="w-64 h-screen bg-[#03050a] border-r border-white/5 flex flex-col text-slate-300 font-sans select-none relative overflow-hidden">
+
+      {/* Ambient blobs */}
+      <div className="absolute top-0 left-0 w-[250px] h-[250px] bg-sky-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[250px] h-[250px] bg-indigo-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
+
+      {/* ── Branding ── */}
+      <div className="relative z-10 shrink-0 px-5 pt-5 pb-4 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <img
+            src="/logo.png"
+            alt="NexBill Logo"
+            className="w-10 h-10 object-contain rounded-xl bg-white/5 border border-white/10 p-0.5"
+          />
           <div>
-            <h1 className="text-lg font-bold text-white tracking-wide leading-none">
-              NexBill
-            </h1>
-            <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-semibold flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-ping"></span>
-              Live POS Terminal
+            <span className="text-[18px] font-bold tracking-tight text-white leading-none">
+              Nex<span className="text-sky-400 font-extrabold">Bill</span>
+            </span>
+            <p className="text-[10.5px] text-slate-500 mt-1 font-normal tracking-wide">
+              Retail POS Platform
             </p>
           </div>
         </div>
-
-        {/* Navigation list */}
-        <nav className="px-4 py-6 space-y-1.5">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            // Handle active checks for exact dashboard and nested pages
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 relative ${
-                  isActive
-                    ? "bg-indigo-600/10 text-white border-l-2 border-indigo-500 pl-3.5 shadow-sm"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 hover:pl-5"
-                }`}>
-                <div className="flex items-center gap-3">
-                  <Icon
-                    size={19}
-                    className={`transition-transform duration-300 group-hover:scale-105 ${
-                      isActive
-                        ? "text-indigo-400"
-                        : "text-slate-400 group-hover:text-indigo-400"
-                    }`}
-                  />
-                  <span className="text-sm font-medium tracking-wide">
-                    {item.label}
-                  </span>
-                </div>
-                {isActive && (
-                  <span className="w-1 h-1 rounded-full bg-indigo-400 shadow-glow" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
       </div>
 
-      {/* Cashier / Terminal Footer Info */}
-      <div className="p-4 border-t border-slate-800 bg-slate-950/40 space-y-4">
-        {/* Cashier Profile Card */}
-        <div className="flex items-center gap-3 p-2 border border-slate-800/40 rounded-xl bg-slate-900/50 backdrop-blur-sm shadow-xs">
-          <div className="size-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md border border-indigo-400/20 tracking-wider">
+      {/* ── Nav — flex-1, NO scroll, content spread top↔bottom ── */}
+      <div className="relative z-10 flex-1 flex flex-col justify-between px-3 py-4 overflow-hidden">
+        {/* Primary — sits at top */}
+        <div>
+          <p className="text-[10px] text-slate-600 uppercase tracking-[0.15em] font-bold px-2 mb-2">
+            Main Menu
+          </p>
+          <div className="space-y-0.5">
+            {primaryNav.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
+        </div>
+
+        {/* Secondary — sits at bottom */}
+        <div>
+          <div className="border-t border-white/[0.05] mx-1 mb-3" />
+          <p className="text-[10px] text-slate-600 uppercase tracking-[0.15em] font-bold px-2 mb-2">
+            Tools
+          </p>
+          <div className="space-y-0.5">
+            {secondaryNav.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footer — always pinned ── */}
+      <div className="relative z-10 shrink-0 border-t border-white/5 p-3 space-y-2">
+        {/* Shop card */}
+        <div className="bg-[#0b0f19]/40 border border-white/[0.06] backdrop-blur-md px-3 py-2.5 rounded-xl flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-[10px] tracking-wider shrink-0">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-semibold text-white truncate flex items-center gap-1">
-              <Store size={12} className="text-slate-500" />
+            <h4 className="text-[11px] font-semibold text-slate-200 truncate flex items-center gap-1.5">
+              <Store size={10} className="text-slate-500 shrink-0" />
               {shopName}
             </h4>
-            <p className="text-[10px] text-slate-500 truncate font-mono mt-0.5">
+            <p className="text-[9.5px] text-slate-500 truncate font-mono mt-0.5">
               {shopEmail}
             </p>
           </div>
         </div>
 
-        {/* Logout Button */}
-        <Button
+        {/* Sign out */}
+        <button
           onClick={handleLogout}
-          variant="ghost"
-          className="w-full flex items-center gap-2 justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/20 border border-slate-800/80 hover:border-red-500/20 h-10 rounded-xl text-xs font-semibold transition-all duration-300">
-          <LogOut size={15} />
+          className="w-full flex items-center gap-2 justify-center px-4 py-2 rounded-xl text-[11.5px] font-semibold text-slate-500 hover:text-red-400 hover:bg-red-500/8 border border-white/[0.05] hover:border-red-500/20 transition-all duration-200 cursor-pointer"
+        >
+          <LogOut size={12} />
           Sign out cashier
-        </Button>
+        </button>
       </div>
     </div>
   );
 }
-

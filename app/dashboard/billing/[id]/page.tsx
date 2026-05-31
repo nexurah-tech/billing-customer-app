@@ -276,52 +276,63 @@ export default function InvoiceDetailPage({
           </div>
         </div>
 
-        {/* Items Table */}
+        {/* Items Table — scrollable when many items */}
         <div className="mb-5 overflow-hidden rounded-xl border border-slate-100 select-none">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-3 py-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
-                  Product Description
-                </th>
-                <th className="px-3 py-2 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider w-16">
-                  Qty
-                </th>
-                <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-24">
-                  Unit Price
-                </th>
-                <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-24">
-                  Subtotal
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {invoice.items.map((item, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-3 py-2 text-xs text-slate-900">
-                    <p className="font-bold flex items-center gap-1.5">
-                      <ShoppingBag size={11} className="text-slate-400" />
-                      {item.product.name}
-                    </p>
-                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 pl-4.5">
-                      {item.product.sku}
-                    </p>
-                  </td>
-                  <td className="px-3 py-2 text-center text-xs font-bold text-slate-950">
-                    {item.quantity}
-                  </td>
-                  <td className="px-3 py-2 text-right text-xs text-slate-600 font-medium">
-                    ₹{item.price.toFixed(2)}
-                  </td>
-                  <td className="px-3 py-2 text-right text-xs font-black text-slate-900">
-                    ₹{item.subtotal.toFixed(2)}
-                  </td>
+          <div className="overflow-y-auto" style={{ maxHeight: '320px' }}>
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="px-3 py-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    Product Description
+                  </th>
+                  <th className="px-3 py-2 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider w-16">
+                    Qty
+                  </th>
+                  <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-24">
+                    Unit Price
+                  </th>
+                  <th className="px-3 py-2 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider w-24">
+                    Subtotal
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {invoice.items.map((item, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-3 py-2 text-xs text-slate-900">
+                      <p className="font-bold flex items-center gap-1.5">
+                        <ShoppingBag size={11} className="text-slate-400" />
+                        {item.product.name}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-mono mt-0.5 pl-4.5">
+                        {item.product.sku}
+                      </p>
+                    </td>
+                    <td className="px-3 py-2 text-center text-xs font-bold text-slate-950">
+                      {item.quantity}
+                    </td>
+                    <td className="px-3 py-2 text-right text-xs text-slate-600 font-medium">
+                      ₹{item.price.toFixed(2)}
+                    </td>
+                    <td className="px-3 py-2 text-right text-xs font-black text-slate-900">
+                      ₹{item.subtotal.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Item count footer */}
+          <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+              {invoice.items.length} line item{invoice.items.length !== 1 ? 's' : ''}
+            </span>
+            <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+              {invoice.items.reduce((s, i) => s + i.quantity, 0)} units total
+            </span>
+          </div>
         </div>
 
         {/* Totals Box Layout */}

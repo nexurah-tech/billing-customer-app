@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/db';
 import { successResponse, errorResponse } from '@/lib/api';
 import { extractAuthFromRequest } from '@/lib/auth';
 import Product from '@/models/Product';
+import Category from '@/models/Category';
+
 
 export async function GET(
   request: NextRequest,

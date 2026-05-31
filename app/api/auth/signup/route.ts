@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { successResponse, errorResponse } from '@/lib/api';
 import { generateToken } from '@/lib/auth';
@@ -23,36 +24,39 @@ export async function POST(request: NextRequest) {
       return errorResponse('Email already registered', 400);
     }
 
-    // Create shop first
+    // Pre-generate IDs to break the circular required-field dependency:
+    // User requires shop, Shop requires owner — both set at construction time.
+    const userId = new mongoose.Types.ObjectId();
+    const shopId = new mongoose.Types.ObjectId();
+
+    const user = new User({
+      _id: userId,
+      email: email.toLowerCase(),
+      password,
+      name,
+      shop: shopId,
+      role: 'owner',
+      status: 'active',
+    });
+
     const shop = new Shop({
+      _id: shopId,
       name: shopName,
       phone,
       email,
       address,
-      owner: null, // Will be updated after user creation
+      owner: userId,
     });
-    await shop.save();
 
-    // Create user
-    const user = new User({
-      email: email.toLowerCase(),
-      password,
-      name,
-      shop: shop._id,
-      role: 'owner',
-      status: 'active',
-    });
+    // Save both — all required fields are satisfied from the start
     await user.save();
-
-    // Update shop with owner reference
-    shop.owner = user._id;
     await shop.save();
 
     // Generate token
     const token = generateToken({
-      userId: user._id.toString(),
+      userId: userId.toString(),
       email: user.email,
-      shopId: shop._id.toString(),
+      shopId: shopId.toString(),
       role: user.role,
     });
 
@@ -77,3 +81,4 @@ export async function POST(request: NextRequest) {
     return errorResponse(error.message || 'Signup failed', 500);
   }
 }
+

@@ -905,9 +905,9 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
 
         return (
           <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
-              {/* Header */}
+              {/* Header — always visible */}
               <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 flex items-center gap-3 shrink-0">
                 <div className="size-9 bg-white/20 rounded-xl flex items-center justify-center">
                   <CheckCircle2 size={20} className="text-white" strokeWidth={2.5} />
@@ -923,8 +923,8 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                 </span>
               </div>
 
-              {/* Body — no scroll */}
-              <div className="p-4 space-y-3">
+              {/* Body — scrollable */}
+              <div className="p-4 space-y-3 overflow-y-auto flex-1">
 
                 {/* Customer + payment row */}
                 <div className="flex items-center gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
@@ -947,24 +947,37 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                   </div>
                 </div>
 
-                {/* Line Items — compact table */}
-                <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden">
-                  <div className="grid grid-cols-[1fr_auto_auto] px-3 py-1.5 bg-slate-50 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                {/* Line Items — scrollable inner section */}
+                <div className="border border-slate-100 rounded-xl overflow-hidden">
+                  {/* Sticky column header */}
+                  <div className="grid grid-cols-[1fr_auto_auto] px-3 py-1.5 bg-slate-50 border-b border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-wider sticky top-0 z-10">
                     <span>Item</span><span className="text-center">Qty</span><span className="text-right">Total</span>
                   </div>
-                  {(inv.items || []).map((it, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_auto_auto] items-center px-3 py-1.5 bg-white">
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-bold text-slate-800 truncate leading-tight">{it.product?.name}</p>
-                        <p className="text-[9px] text-slate-400 font-mono">₹{(it.price ?? 0).toFixed(2)}</p>
+                  {/* Scrollable rows — capped at ~6 items height */}
+                  <div className="divide-y divide-slate-100 overflow-y-auto" style={{ maxHeight: '210px' }}>
+                    {(inv.items || []).map((it, idx) => (
+                      <div key={idx} className="grid grid-cols-[1fr_auto_auto] items-center px-3 py-2 bg-white">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold text-slate-800 truncate leading-tight">{it.product?.name}</p>
+                          <p className="text-[9px] text-slate-400 font-mono">₹{(it.price ?? 0).toFixed(2)}</p>
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-600 text-center px-3">{it.quantity}</span>
+                        <span className="text-[11px] font-black text-slate-900 text-right">₹{(it.subtotal ?? 0).toFixed(2)}</span>
                       </div>
-                      <span className="text-[11px] font-semibold text-slate-600 text-center px-3">{it.quantity}</span>
-                      <span className="text-[11px] font-black text-slate-900 text-right">₹{(it.subtotal ?? 0).toFixed(2)}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  {/* Item count footer */}
+                  <div className="px-3 py-1 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+                      {(inv.items || []).length} items
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+                      {(inv.items || []).reduce((s: number, i: any) => s + i.quantity, 0)} units
+                    </span>
+                  </div>
                 </div>
 
-                {/* Totals — slim horizontal strip */}
+                {/* Totals — always visible at bottom of scroll */}
                 <div className="flex items-center justify-between gap-2 px-3 py-2.5 bg-slate-900 rounded-xl text-xs">
                   <div className="flex items-center gap-3 text-slate-400">
                     <span>Sub <span className="text-white font-semibold">₹{(inv.subtotal ?? 0).toFixed(2)}</span></span>
@@ -978,7 +991,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                   </div>
                 </div>
 
-                {/* Notes (only if present — inline) */}
+                {/* Notes (only if present) */}
                 {inv.notes && (
                   <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200/50 rounded-lg px-3 py-1.5 font-medium truncate">
                     📝 {inv.notes}
@@ -986,8 +999,8 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                 )}
               </div>
 
-              {/* Action buttons — horizontal single row */}
-              <div className="px-4 pb-4 grid grid-cols-3 gap-2 shrink-0">
+              {/* Action buttons — always pinned at bottom */}
+              <div className="px-4 pb-4 pt-2 grid grid-cols-3 gap-2 shrink-0 border-t border-slate-100 bg-white">
                 <button
                   onClick={handleWhatsApp}
                   className="flex items-center justify-center gap-2 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
@@ -1015,6 +1028,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
 
             </div>
           </div>
+
         );
       })()}
 

@@ -3,6 +3,9 @@ import { connectDB } from '@/lib/db';
 import { successResponse, errorResponse } from '@/lib/api';
 import { extractAuthFromRequest } from '@/lib/auth';
 import Invoice from '@/models/Invoice';
+import Customer from '@/models/Customer';
+import Product from '@/models/Product';
+
 
 export async function GET(
   request: NextRequest,

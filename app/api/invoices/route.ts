@@ -5,6 +5,8 @@ import { extractAuthFromRequest } from '@/lib/auth';
 import Invoice from '@/models/Invoice';
 import Settings from '@/models/Settings';
 import Product from '@/models/Product';
+import Customer from '@/models/Customer';
+
 
 async function getNextInvoiceSequence(shopId: string): Promise<number> {
   const latest = await Invoice.findOne({ shop: shopId })
@@ -41,6 +43,13 @@ async function generateInvoiceNumber(shopId: string): Promise<string> {
   }
 
   if (settings.invoiceAutoSequence) {
+    // Sync counter with actual DB max to prevent stale-counter collisions
+    const actualNext = await getNextInvoiceSequence(shopId);
+    await Settings.findOneAndUpdate(
+      { shop: shopId },
+      { $max: { invoiceStartNumber: actualNext } }
+    );
+
     const updated = await Settings.findOneAndUpdate(
       { shop: shopId },
       { $inc: { invoiceStartNumber: 1 } },
@@ -213,8 +222,14 @@ export async function POST(request: NextRequest) {
         if (
           error?.code === 11000 &&
           error.message?.includes('invoiceNumber') &&
-          attempt < 2
+          attempt < 4
         ) {
+          // Re-sync counter from actual DB state before retrying
+          const actualNext = await getNextInvoiceSequence(auth.shopId);
+          await Settings.findOneAndUpdate(
+            { shop: auth.shopId },
+            { $max: { invoiceStartNumber: actualNext } }
+          );
           invoiceNumber = await generateInvoiceNumber(auth.shopId);
           continue;
         }
