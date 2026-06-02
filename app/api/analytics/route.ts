@@ -17,23 +17,42 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'month'; // day, week, month, year
+    const startParam = searchParams.get('startDate');
+    const endParam = searchParams.get('endDate');
 
     // Calculate date range
     let startDate = new Date();
-    if (period === 'day') {
-      startDate.setDate(startDate.getDate() - 1);
-    } else if (period === 'week') {
-      startDate.setDate(startDate.getDate() - 7);
-    } else if (period === 'month') {
-      startDate.setMonth(startDate.getMonth() - 1);
-    } else if (period === 'year') {
-      startDate.setFullYear(startDate.getFullYear() - 1);
+    let endDate = new Date();
+    let isSpecificRange = false;
+
+    if (startParam && endParam) {
+      startDate = new Date(startParam);
+      endDate = new Date(endParam);
+      // Ensure endDate is at the end of the day if it's just a date string (YYYY-MM-DD)
+      if (endParam.length === 10) {
+        endDate.setHours(23, 59, 59, 999);
+      }
+      isSpecificRange = true;
+    } else {
+      if (period === 'day') {
+        startDate.setDate(startDate.getDate() - 1);
+      } else if (period === 'week') {
+        startDate.setDate(startDate.getDate() - 7);
+      } else if (period === 'month') {
+        startDate.setMonth(startDate.getMonth() - 1);
+      } else if (period === 'year') {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+      }
     }
 
-    const query = {
+    const query: any = {
       shop: auth.shopId,
       createdAt: { $gte: startDate },
     };
+    
+    if (isSpecificRange) {
+      query.createdAt.$lte = endDate;
+    }
 
     // Total Revenue & Orders
     const invoices = await Invoice.find(query).populate('items.product');
@@ -99,25 +118,36 @@ export async function GET(request: NextRequest) {
     });
     const activeCustomers = await Invoice.distinct('customer', query);
 
-    // Revenue Trend (last 7 days) using JS aggregation
+    // Revenue Trend using JS aggregation
     const trendMap: Record<string, { revenue: number; orders: number }> = {};
     for (const invoice of invoices) {
-      const day = invoice.createdAt.toISOString().slice(0, 10);
-      if (!trendMap[day]) {
-        trendMap[day] = { revenue: 0, orders: 0 };
+      let isHourly = false;
+      if (isSpecificRange) {
+         const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+         if (diffDays <= 2) isHourly = true;
+      } else {
+         if (period === 'day') isHourly = true;
       }
-      trendMap[day].revenue += invoice.total;
-      trendMap[day].orders += 1;
+      
+      const key = isHourly 
+        ? invoice.createdAt.toISOString().slice(0, 13) 
+        : invoice.createdAt.toISOString().slice(0, 10);
+        
+      if (!trendMap[key]) {
+        trendMap[key] = { revenue: 0, orders: 0 };
+      }
+      trendMap[key].revenue += invoice.total;
+      trendMap[key].orders += 1;
     }
 
     const revenueTrend = Object.entries(trendMap)
-      .map(([day, values]) => ({
-        _id: day,
+      .map(([key, values]) => ({
+        _id: key,
         revenue: values.revenue,
         orders: values.orders,
       }))
-      .sort((a, b) => a._id.localeCompare(b._id))
-      .slice(-7);
+      .sort((a, b) => a._id.localeCompare(b._id));
 
     return successResponse({
       summary: {

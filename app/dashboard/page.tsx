@@ -53,12 +53,14 @@ export default function DashboardPage() {
   const router = useRouter();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<'day' | 'month'>('month');
 
   useEffect(() => {
     const fetchAnalytics = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/analytics?period=month', {
+        const response = await fetch(`/api/analytics?period=${period}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -82,24 +84,63 @@ export default function DashboardPage() {
     };
 
     fetchAnalytics();
-  }, [router]);
+  }, [router, period]);
 
   if (loading) {
     return (
-      <div className="p-8 h-[calc(100vh-80px)] flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="size-10 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto animate-spin">
-            <Zap size={20} />
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between gap-4 pb-5 border-b border-slate-200/50">
+          <div className="flex items-center gap-3.5">
+            <div className="size-10 bg-slate-200 rounded-2xl animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-6 w-48 bg-slate-200 rounded-lg animate-pulse" />
+              <div className="h-3 w-64 bg-slate-100 rounded-md animate-pulse" />
+            </div>
           </div>
-          <div className="text-slate-400 font-bold text-xs uppercase tracking-widest animate-pulse">
-            Retrieving terminal analytics...
-          </div>
+          <div className="h-8 w-40 bg-slate-200 rounded-xl animate-pulse" />
+        </div>
+
+        {/* KPI Grid Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="p-5 flex flex-col gap-3 min-h-[120px] rounded-2xl bg-white border-slate-200">
+              <div className="flex justify-between items-center">
+                <div className="h-3 w-24 bg-slate-200 rounded animate-pulse" />
+                <div className="size-8 bg-slate-100 rounded-xl animate-pulse" />
+              </div>
+              <div className="h-8 w-32 bg-slate-200 rounded-lg animate-pulse mt-1" />
+              <div className="h-4 w-28 bg-slate-100 rounded-lg animate-pulse mt-auto" />
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <Card className="p-5 lg:col-span-8 rounded-2xl bg-white border-slate-200 h-[380px] flex flex-col">
+             <div className="h-4 w-40 bg-slate-200 rounded animate-pulse mb-6" />
+             <div className="flex-1 bg-slate-100/50 rounded-xl animate-pulse w-full" />
+          </Card>
+          <Card className="p-5 lg:col-span-4 rounded-2xl bg-white border-slate-200 h-[380px] flex flex-col">
+             <div className="h-4 w-40 bg-slate-200 rounded animate-pulse mb-6" />
+             <div className="space-y-4 flex-1">
+               {[1, 2, 3, 4, 5].map(i => (
+                 <div key={i} className="flex gap-3 items-center">
+                   <div className="size-8 bg-slate-200 rounded-full animate-pulse shrink-0" />
+                   <div className="flex-1 space-y-2">
+                     <div className="h-3 w-full bg-slate-200 rounded animate-pulse" />
+                     <div className="h-2 w-1/2 bg-slate-100 rounded animate-pulse" />
+                   </div>
+                 </div>
+               ))}
+             </div>
+          </Card>
         </div>
       </div>
     );
   }
 
-  // Build a complete 30-day date range so the chart always shows all days
+  // Build a complete 24-hour or 30-day date range so the chart always shows all intervals
   const buildFullTrend = () => {
     const rawTrend = analytics?.revenueTrend || [];
     const trendMap: Record<string, { revenue: number; orders: number }> = {};
@@ -107,16 +148,33 @@ export default function DashboardPage() {
       trendMap[entry._id] = { revenue: entry.revenue, orders: entry.orders };
     }
     const result = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      result.push({
-        _id: key,
-        label: d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
-        revenue: trendMap[key]?.revenue ?? 0,
-        orders: trendMap[key]?.orders ?? 0,
-      });
+    
+    if (period === 'day') {
+      // Build 24 hours
+      for (let i = 23; i >= 0; i--) {
+        const d = new Date();
+        d.setHours(d.getHours() - i);
+        const key = d.toISOString().slice(0, 13);
+        result.push({
+          _id: key,
+          label: d.toLocaleTimeString('en-IN', { hour: 'numeric', hour12: true }),
+          revenue: trendMap[key]?.revenue ?? 0,
+          orders: trendMap[key]?.orders ?? 0,
+        });
+      }
+    } else {
+      // Build 30 days
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        result.push({
+          _id: key,
+          label: d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+          revenue: trendMap[key]?.revenue ?? 0,
+          orders: trendMap[key]?.orders ?? 0,
+        });
+      }
     }
     return result;
   };
@@ -175,6 +233,30 @@ export default function DashboardPage() {
               Live overview of sales performance, billing trends, and catalog product rankings
             </p>
           </div>
+        </div>
+
+        {/* Toggle Group */}
+        <div className="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200/50 self-start sm:self-auto">
+          <button
+            onClick={() => setPeriod('day')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              period === 'day' 
+                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200/50' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setPeriod('month')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              period === 'month' 
+                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200/50' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            This Month
+          </button>
         </div>
       </div>
 
