@@ -5,6 +5,8 @@ import { successResponse, errorResponse } from '@/lib/api';
 import { generateToken } from '@/lib/auth';
 import User from '@/models/User';
 import Shop from '@/models/Shop';
+import Notification from '@/models/Notification';
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
       name,
       shop: shopId,
       role: 'owner',
-      status: 'active',
+      status: 'pending',
     });
 
     const shop = new Shop({
@@ -51,6 +53,21 @@ export async function POST(request: NextRequest) {
     // Save both — all required fields are satisfied from the start
     await user.save();
     await shop.save();
+
+    // Create a notification for Super Admin
+    try {
+      const adminNotif = new Notification({
+        title: `Approval Request: ${shopName}`,
+        message: `New shop registration request: Owner "${name}" registered "${shopName}" (Email: ${email}, Phone: ${phone}). Awaiting approval.`,
+        type: 'alert',
+        targetShop: null,
+        isAdminOnly: true,
+        readBy: [],
+      });
+      await adminNotif.save();
+    } catch (notifError) {
+      console.error('Error creating super admin notification on signup:', notifError);
+    }
 
     // Generate token
     const token = generateToken({
@@ -78,7 +95,42 @@ export async function POST(request: NextRequest) {
     );
   } catch (error: any) {
     console.error('Signup error:', error);
-    return errorResponse(error.message || 'Signup failed', 500);
+
+    // Parse and simplify error messages — never expose raw DB errors
+    let friendlyError = 'Registration failed. Please try again.';
+
+    if (error.code === 11000) {
+      // Duplicate key (e.g., email already exists)
+      friendlyError = 'This email address is already registered. Please sign in instead.';
+    } else if (error.name === 'ValidationError' && error.errors) {
+      // Mongoose field validation errors
+      const fieldErrors: string[] = [];
+      for (const field in error.errors) {
+        const fieldError = error.errors[field];
+        if (field === 'password') {
+          fieldErrors.push('Password must be at least 8 characters and include numbers and symbols.');
+        } else if (field === 'email') {
+          fieldErrors.push('Please enter a valid email address.');
+        } else if (field === 'phone') {
+          fieldErrors.push('Phone number must be exactly 10 digits.');
+        } else if (field === 'status') {
+          // Internal field — don't expose it
+        } else {
+          fieldErrors.push(`${field.charAt(0).toUpperCase() + field.slice(1)} is invalid or missing.`);
+        }
+      }
+      if (fieldErrors.length > 0) {
+        friendlyError = fieldErrors.join(' ');
+      }
+    } else if (error.message?.toLowerCase().includes('password')) {
+      friendlyError = 'Password must be at least 8 characters and include numbers and symbols.';
+    } else if (error.message?.toLowerCase().includes('email')) {
+      friendlyError = 'Please enter a valid email address.';
+    } else if (error.message?.toLowerCase().includes('network') || error.message?.toLowerCase().includes('connect')) {
+      friendlyError = 'Unable to connect to the server. Please check your connection and try again.';
+    }
+
+    return errorResponse(friendlyError, 500);
   }
 }
 

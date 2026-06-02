@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
-import { Search, Bell, Clock, Cpu, ShieldCheck } from 'lucide-react';
+import { Search, Bell, Clock, Cpu, ShieldCheck, AlertCircle, Info, Sparkles, Check, CheckCircle2, CreditCard, X, GripHorizontal } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -11,9 +11,80 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [authorized, setAuthorized] = useState(false);
   const [time, setTime] = useState('');
   const [lowStockCount, setLowStockCount] = useState(0);
+  
+  // Real-time status & notifications states
+  const [status, setStatus] = useState<'pending' | 'active' | 'blocked' | 'inactive'>('active');
+  const [statusChecked, setStatusChecked] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
+
+  // Draggable, resizable floating notification window state
+  const [activeNotification, setActiveNotification] = useState<any | null>(null);
+  const [windowPosition, setWindowPosition] = useState({ x: 380, y: 100 });
+  const [windowSize, setWindowSize] = useState({ width: 380, height: 260 });
+  const [dragging, setDragging] = useState(false);
+  const [resizing, setResizing] = useState(false);
+
+  // Mouse Drag Handler
+  const startDrag = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.close-btn-popup')) return;
+    e.preventDefault();
+    setDragging(true);
+
+    const startX = e.clientX - windowPosition.x;
+    const startY = e.clientY - windowPosition.y;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      setWindowPosition({
+        x: moveEvent.clientX - startX,
+        y: moveEvent.clientY - startY,
+      });
+    };
+
+    const onMouseUp = () => {
+      setDragging(false);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  // Mouse Resize Handler
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing(true);
+
+    const startWidth = windowSize.width;
+    const startHeight = windowSize.height;
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const newWidth = Math.max(320, startWidth + (moveEvent.clientX - startX));
+      const newHeight = Math.max(220, startHeight + (moveEvent.clientY - startY));
+      setWindowSize({
+        width: newWidth,
+        height: newHeight,
+      });
+    };
+
+    const onMouseUp = () => {
+      setResizing(false);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -70,6 +141,113 @@ export default function DashboardLayout({
     return () => clearInterval(interval);
   }, [authorized]);
 
+  // Fetch user status
+  useEffect(() => {
+    if (!authorized) return;
+
+    const checkUserStatus = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/auth/status', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (data.success) {
+          setStatus(data.data.status);
+        }
+      } catch (err) {
+        console.error('Error checking user status:', err);
+      } finally {
+        setStatusChecked(true);
+      }
+    };
+
+    checkUserStatus();
+    const interval = setInterval(checkUserStatus, 15000); // Check status every 15s for instant response
+    return () => clearInterval(interval);
+  }, [authorized]);
+
+  // Fetch admin notifications
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNotifications(data.data.notifications);
+        setUnreadNotificationsCount(data.data.unreadCount);
+      }
+    } catch (err) {
+      console.error('Error fetching admin notifications:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!authorized) return;
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [authorized]);
+
+  // Mark single notification as read
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ notificationId }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNotifications(
+          notifications.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
+        );
+        setUnreadNotificationsCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  // Mark all notifications as read
+  const markAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ markAllAsRead: true }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+        setUnreadNotificationsCount(0);
+      }
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
+
+  // Click outside notification dropdown handler
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowNotificationsDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!authorized) {
     return (
       <div className="flex h-screen bg-slate-900 items-center justify-center select-none">
@@ -77,6 +255,56 @@ export default function DashboardLayout({
           <div className="w-10 h-10 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           <div className="text-slate-400 font-medium text-xs tracking-widest uppercase animate-pulse">
             Authenticating POS terminal...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle suspended/pending accounts with beautiful full-page overlays
+  if (statusChecked && (status === 'blocked' || status === 'pending')) {
+    const handleLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('shop');
+      router.replace('/auth/login');
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 select-none">
+        <div className="w-full max-w-md p-8 bg-white border border-slate-200/80 rounded-3xl shadow-2xl flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200">
+          {status === 'blocked' ? (
+            <>
+              <div className="size-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-sm">
+                <AlertCircle size={32} strokeWidth={2} />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">POS Terminal Suspended</h2>
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  Your billing terminal access has been suspended due to pending monthly dues. Please contact NexBill administrator at <strong className="text-indigo-600">admin@nexurah.com</strong> to clear your balance and restore access.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="size-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm">
+                <Clock size={32} strokeWidth={2} className="animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Pending Admin Approval</h2>
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  Thank you for registering at NexBill. Your terminal account is currently pending approval by the super administrator. Access will be enabled shortly once your shop profile is verified.
+                </p>
+              </div>
+            </>
+          )}
+
+          <div className="w-full pt-2">
+            <button
+              onClick={handleLogout}
+              className="w-full py-3 bg-slate-950 hover:bg-slate-900 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+            >
+              Sign Out Account
+            </button>
           </div>
         </div>
       </div>
@@ -114,16 +342,103 @@ export default function DashboardLayout({
               <span className="hidden md:inline">POS Secure</span>
             </div>
 
-            {/* Low stock notifications bell */}
-            <div className="relative cursor-pointer hover:bg-slate-100 p-2 rounded-xl transition-colors">
-              <Bell size={18} className="text-slate-600" />
-              {lowStockCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative rounded-full h-4 w-4 bg-amber-500 text-[9px] text-white font-bold flex items-center justify-center">
-                    {lowStockCount}
+            {/* Real-time Notifications bell & Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <div 
+                onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
+                className="relative cursor-pointer hover:bg-slate-100 p-2 rounded-xl transition-colors select-none"
+              >
+                <Bell size={18} className="text-slate-600 animate-none" />
+                {(unreadNotificationsCount > 0 || lowStockCount > 0) && (
+                  <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span className="relative rounded-full h-4 w-4 bg-indigo-600 text-[9px] text-white font-bold flex items-center justify-center">
+                      {unreadNotificationsCount + (lowStockCount > 0 ? 1 : 0)}
+                    </span>
                   </span>
-                </span>
+                )}
+              </div>
+
+              {/* Floating Dropdown */}
+              {showNotificationsDropdown && (
+                <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-200/80 rounded-2xl shadow-xl z-50 overflow-hidden divide-y divide-slate-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Dropdown Header */}
+                  <div className="px-4 py-3 bg-slate-50 flex items-center justify-between select-none">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">POS Terminal Alerts</span>
+                    {unreadNotificationsCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-[10px] text-indigo-600 hover:text-indigo-700 font-extrabold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <CheckCircle2 size={11} />
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Dropdown Scrollable Area */}
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-50 no-scrollbar">
+                    {/* Low Stock alert merged into list */}
+                    {lowStockCount > 0 && (
+                      <div className="p-3.5 hover:bg-slate-50/50 flex gap-3 text-[11px] leading-relaxed transition-colors select-none">
+                        <div className="size-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
+                          <AlertCircle size={14} />
+                        </div>
+                        <div className="space-y-0.5 flex-1">
+                          <p className="font-extrabold text-slate-800">Inventory Alert</p>
+                          <p className="text-slate-400 font-semibold leading-normal">
+                            You have {lowStockCount} items running below reorder thresholds.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Admin notifications */}
+                    {notifications.length === 0 && lowStockCount === 0 ? (
+                      <div className="p-8 text-center text-slate-400 font-bold select-none text-[11px]">
+                        No system messages logged.
+                      </div>
+                    ) : (
+                      notifications.map((notif) => {
+                        const isPay = notif.type === 'payment';
+                        const isAlert = notif.type === 'alert';
+                        const Icon = isPay ? CreditCard : isAlert ? AlertCircle : Info;
+                        const iconBg = isPay ? 'bg-red-50 text-red-600' : isAlert ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600';
+                        
+                        return (
+                          <div 
+                            key={notif.id} 
+                            onClick={() => {
+                              setActiveNotification(notif);
+                              if (!notif.isRead) {
+                                markAsRead(notif.id);
+                              }
+                            }}
+                            className={`p-3.5 hover:bg-slate-50/50 flex gap-3 text-[11px] leading-relaxed transition-colors cursor-pointer relative ${!notif.isRead ? 'bg-indigo-50/[0.08]' : ''}`}
+                          >
+                            <div className={`size-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${iconBg}`}>
+                              <Icon size={14} />
+                            </div>
+                            <div className="space-y-0.5 flex-1 pr-3">
+                              <p className="font-extrabold text-slate-800 flex items-center justify-between">
+                                {notif.title}
+                                {!notif.isRead && (
+                                  <span className="size-1.5 rounded-full bg-indigo-600 shrink-0 self-center" />
+                                )}
+                              </p>
+                              <p className="text-slate-505 font-medium leading-normal mt-0.5 truncate max-w-[200px]">{notif.message}</p>
+                              <p className="text-[9.5px] text-slate-450 font-semibold mt-1">
+                                {new Date(notif.createdAt).toLocaleDateString('en-IN', {
+                                  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -134,6 +449,98 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+
+      {/* ── Draggable, Resizable Floating Notification Window ── */}
+      {activeNotification && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${windowPosition.x}px`,
+            top: `${windowPosition.y}px`,
+            width: `${windowSize.width}px`,
+            height: `${windowSize.height}px`,
+            zIndex: 9999,
+          }}
+          className={`flex flex-col bg-slate-950/95 border border-slate-800/80 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-shadow select-none select-text ${
+            dragging ? 'shadow-indigo-500/10 ring-1 ring-indigo-500/20' : ''
+          }`}
+        >
+          {/* Window Drag Header */}
+          <div
+            onMouseDown={startDrag}
+            className={`h-11 px-4.5 bg-slate-900 border-b border-slate-800/60 flex items-center justify-between cursor-move select-none ${
+              dragging ? 'bg-slate-850' : ''
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <GripHorizontal size={14} className="text-slate-500" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                System Broadcast
+              </span>
+            </div>
+            
+            <button
+              onClick={() => setActiveNotification(null)}
+              className="close-btn-popup p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer active:scale-90"
+            >
+              <X size={13} />
+            </button>
+          </div>
+
+          {/* Window Content Body */}
+          <div className="flex-1 p-5 overflow-y-auto space-y-4 no-scrollbar">
+            <div className="space-y-1 select-text">
+              <span className={`inline-flex px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider select-none ${
+                activeNotification.type === 'payment'
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : activeNotification.type === 'alert'
+                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+              }`}>
+                {activeNotification.type || 'info'}
+              </span>
+              <h3 className="text-sm font-black text-white leading-snug tracking-tight">
+                {activeNotification.title}
+              </h3>
+            </div>
+
+            <p className="text-xs text-slate-300 font-medium leading-relaxed select-text whitespace-pre-wrap">
+              {activeNotification.message}
+            </p>
+
+            <div className="pt-2 border-t border-slate-900/60 flex justify-between items-center text-[9px] font-semibold text-slate-500 select-none">
+              <span>NexBill Bulletin Engine</span>
+              <span className="font-mono">
+                {new Date(activeNotification.createdAt).toLocaleDateString('en-IN', {
+                  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                })}
+              </span>
+            </div>
+          </div>
+
+          {/* Resize Corner Anchor Handle */}
+          <div
+            onMouseDown={startResize}
+            style={{
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              width: '14px',
+              height: '14px',
+              cursor: 'se-resize',
+              zIndex: 100,
+            }}
+            className="flex items-end justify-end p-0.5 group"
+            title="Drag to resize window"
+          >
+            {/* Minimal visual resize lines anchor */}
+            <svg width="8" height="8" viewBox="0 0 8 8" className="text-slate-650 group-hover:text-indigo-400 transition-colors">
+              <line x1="6" y1="0" x2="6" y2="6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+              <line x1="0" y1="6" x2="6" y2="6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

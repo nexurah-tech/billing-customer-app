@@ -20,6 +20,11 @@ import {
   TrendingUp,
   Activity,
   Terminal,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  CreditCard,
+  X,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -29,6 +34,19 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [pendingUserName, setPendingUserName] = useState('');
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [blockedUserName, setBlockedUserName] = useState('');
+  const [showRejectedModal, setShowRejectedModal] = useState(false);
+  const [rejectedUserName, setRejectedUserName] = useState('');
+  
+  // Terminal details state
+  const [modalShopName, setModalShopName] = useState('');
+  const [modalRole, setModalRole] = useState('');
+  const [modalPhone, setModalPhone] = useState('');
+  const [modalEmail, setModalEmail] = useState('');
+  const [modalBlockReason, setModalBlockReason] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +63,44 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.error || 'Login failed');
+        // If account is blocked, show custom blocked modal
+        if (data.status === 'blocked' || (data.error || '').toLowerCase().includes('suspended') || (data.error || '').toLowerCase().includes('blocked')) {
+          setBlockedUserName(data.userName || email.split('@')[0]);
+          setModalShopName(data.shopName || 'Unknown Shop');
+          setModalRole(data.role || 'owner');
+          setModalPhone(data.contactPhone || 'N/A');
+          setModalEmail(data.contactEmail || email);
+          setModalBlockReason(data.blockReason || 'Subscription Payment Overdue');
+          setShowBlockedModal(true);
+          setLoading(false);
+          return;
+        }
+
+        // If account is rejected, show custom rejected modal
+        if (data.status === 'rejected' || (data.error || '').toLowerCase().includes('rejected')) {
+          setRejectedUserName(data.userName || email.split('@')[0]);
+          setModalShopName(data.shopName || 'Unknown Shop');
+          setModalRole(data.role || 'owner');
+          setModalPhone(data.contactPhone || 'N/A');
+          setModalEmail(data.contactEmail || email);
+          setShowRejectedModal(true);
+          setLoading(false);
+          return;
+        }
+
+        // If account is pending, show friendly modal instead of raw error
+        const errMsg = (data.error || '').toLowerCase();
+        if (data.status === 'pending' || errMsg.includes('pending') || errMsg.includes('approved') || errMsg.includes('approval')) {
+          setPendingUserName(data.userName || email.split('@')[0]);
+          setModalShopName(data.shopName || 'Unknown Shop');
+          setModalRole(data.role || 'owner');
+          setModalPhone(data.contactPhone || 'N/A');
+          setModalEmail(data.contactEmail || email);
+          setShowPendingModal(true);
+          setLoading(false);
+          return;
+        }
+        setError(data.error || 'Login failed. Please check your credentials.');
         setLoading(false);
         return;
       }
@@ -62,8 +117,294 @@ export default function LoginPage() {
     }
   };
 
+  const isPaymentReason = modalBlockReason.toLowerCase().includes('payment') || 
+                          modalBlockReason.toLowerCase().includes('dues') || 
+                          modalBlockReason.toLowerCase().includes('fee') ||
+                          modalBlockReason.toLowerCase().includes('overdue') ||
+                          modalBlockReason.toLowerCase().includes('pay');
+
   return (
     <div className="h-screen overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-900">
+
+      {/* ── Pending Approval Modal Overlay ── */}
+      {showPendingModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 backdrop-blur-lg p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-4xl bg-white rounded-[32px] shadow-[0_25px_70px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Amber top bar */}
+            <div className="h-2 w-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500" />
+
+            <div className="p-10 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+
+                {/* Left Column: Info & Description (7/12 cols) */}
+                <div className="md:col-span-7 space-y-6 flex flex-col justify-between">
+                  <div className="space-y-6">
+                    {/* Header with inline icon */}
+                    <div className="flex items-center gap-5">
+                      <div className="size-16 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 shadow-sm border border-amber-100 p-3.5">
+                        <Clock size={32} strokeWidth={2.5} className="animate-pulse" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                          Account Pending Approval
+                        </h2>
+                        <span className="text-xs md:text-sm text-amber-500 font-extrabold uppercase tracking-widest block mt-1">Authorization Required</span>
+                      </div>
+                    </div>
+
+                    <p className="text-base md:text-lg text-slate-650 leading-relaxed font-semibold">
+                      Hi <strong className="text-slate-900 font-extrabold">{pendingUserName}</strong>! Your registration details for <strong className="text-indigo-700 font-extrabold">{modalShopName}</strong> have been sent to the administrator. We will grant access shortly.
+                    </p>
+
+                    <div className="bg-amber-50/60 border border-amber-100 rounded-2xl p-6 text-sm md:text-base text-slate-750 leading-relaxed font-medium">
+                      Registration requests are handled instantly. Once approved, you will receive an automated WhatsApp confirmation message.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Status steps & action (5/12 cols) */}
+                <div className="md:col-span-5 flex flex-col justify-between gap-6">
+                  {/* Status steps */}
+                  <div className="bg-slate-50/80 rounded-2xl p-6 space-y-6 text-left border border-slate-100 flex-1 flex flex-col justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border-2 border-emerald-200 mt-0.5">
+                        <CheckCircle2 size={16} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-slate-800 leading-tight">Registration Submitted</p>
+                        <p className="text-xs md:text-sm text-slate-550 font-semibold mt-1 font-mono">{modalEmail}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border-2 border-amber-200 mt-0.5 animate-pulse">
+                        <Clock size={15} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-amber-600 leading-tight">Awaiting Admin Approval</p>
+                        <p className="text-xs md:text-sm text-slate-550 font-semibold mt-1">Verifying terminal for {modalShopName}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4 opacity-45">
+                      <div className="size-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border-2 border-slate-200 mt-0.5">
+                        <CheckCircle2 size={16} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-slate-600 leading-tight">WhatsApp Confirmation</p>
+                        <p className="text-xs md:text-sm text-slate-500 font-semibold mt-1 font-mono">Dispatched to: {modalPhone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Got it, wait button */}
+                  <button
+                    onClick={() => setShowPendingModal(false)}
+                    className="w-full py-4 bg-slate-950 hover:bg-slate-800 text-white text-base font-extrabold rounded-2xl transition-all cursor-pointer active:scale-98 flex items-center justify-center gap-2 shadow-sm shrink-0"
+                  >
+                    <X size={18} />
+                    Got it, I&apos;ll wait
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Blocked Account Modal Overlay ── */}
+      {showBlockedModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 backdrop-blur-lg p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-4xl bg-white rounded-[32px] shadow-[0_25px_70px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Red top bar */}
+            <div className="h-2 w-full bg-gradient-to-r from-red-500 via-rose-500 to-red-650" />
+
+            <div className="p-10 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+                
+                {/* Left Column: Suspension info (7/12 cols) */}
+                <div className="md:col-span-7 space-y-6 flex flex-col justify-between">
+                  <div className="space-y-6">
+                    {/* Header with inline icon */}
+                    <div className="flex items-center gap-5">
+                      <div className="size-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 shadow-sm border border-red-100 p-3.5">
+                        <ShieldAlert size={32} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                          POS Terminal Suspended
+                        </h2>
+                        <span className="text-xs md:text-sm text-red-500 font-extrabold uppercase tracking-widest block mt-1">Access Restriction Active</span>
+                      </div>
+                    </div>
+
+                    <p className="text-base md:text-lg text-slate-650 leading-relaxed font-semibold">
+                      Hi <strong className="text-slate-900 font-extrabold">{blockedUserName}</strong>! Your branch terminal access for <strong className="text-indigo-700 font-extrabold">{modalShopName}</strong> has been suspended.
+                    </p>
+
+                    {/* Highlighted Suspension Reason Block */}
+                    <div className="bg-red-50/60 border border-red-100 rounded-2xl p-6 space-y-2 animate-in fade-in duration-200 text-left">
+                      <span className="text-xs font-black uppercase tracking-wider text-red-500 block">Suspension Reason</span>
+                      <p className="text-base md:text-lg font-black text-red-900 leading-snug">
+                        {modalBlockReason}
+                      </p>
+                    </div>
+
+                    {/* Reactivation warning banner */}
+                    {isPaymentReason && (
+                      <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-5 flex items-center gap-5 text-left">
+                        <div className="size-11 rounded-xl bg-amber-500 flex items-center justify-center shrink-0 text-white shadow-sm">
+                          <CreditCard size={20} strokeWidth={2.5} />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-sm md:text-base font-extrabold text-amber-800 leading-tight">Please Pay for Approval</h5>
+                          <p className="text-xs md:text-sm text-slate-600 font-semibold leading-normal mt-1">Reactivation requires clearing the pending subscription dues of this month.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Status steps & action (5/12 cols) */}
+                <div className="md:col-span-5 flex flex-col justify-between gap-6">
+                  {/* Status steps */}
+                  <div className="bg-slate-50/80 rounded-2xl p-6 space-y-6 text-left border border-slate-100 flex-1 flex flex-col justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border-2 border-emerald-200 mt-0.5">
+                        <CheckCircle2 size={16} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-slate-800 leading-tight">Terminal Verified</p>
+                        <p className="text-xs md:text-sm text-slate-555 font-semibold mt-1 font-mono">{modalEmail}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-red-50 text-red-650 flex items-center justify-center shrink-0 border-2 border-red-200 mt-0.5">
+                        <X size={14} className="text-red-600" strokeWidth={3} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-red-650 leading-tight">Access Suspended</p>
+                        <p className="text-xs md:text-sm text-red-550 font-semibold mt-1">{modalBlockReason}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border-2 border-amber-200 mt-0.5">
+                        <AlertCircle size={15} strokeWidth={2.5} className="text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-amber-650 leading-tight">Helpline Reactivation</p>
+                        <p className="text-xs md:text-sm text-slate-500 font-semibold mt-1 font-mono">Contact admin: {modalPhone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Close button */}
+                  <button
+                    onClick={() => setShowBlockedModal(false)}
+                    className="w-full py-4 bg-slate-950 hover:bg-slate-800 text-white text-base font-extrabold rounded-2xl transition-all cursor-pointer active:scale-98 flex items-center justify-center gap-2 shadow-sm shrink-0"
+                  >
+                    <X size={18} />
+                    Dismiss Notification
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Custom Rejection Confirmation Modal Overlay ── */}
+      {showRejectedModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 backdrop-blur-lg p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-4xl bg-white rounded-[32px] shadow-[0_25px_70px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Orange/Red top bar */}
+            <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
+
+            <div className="p-10 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+                
+                {/* Left Column: Rejection info (7/12 cols) */}
+                <div className="md:col-span-7 space-y-6 flex flex-col justify-between">
+                  <div className="space-y-6">
+                    {/* Header with inline icon */}
+                    <div className="flex items-center gap-5">
+                      <div className="size-16 rounded-2xl bg-red-50 text-red-655 flex items-center justify-center shrink-0 shadow-sm border border-red-100 p-3.5">
+                        <AlertCircle size={32} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                          Registration Rejected
+                        </h2>
+                        <span className="text-xs md:text-sm text-rose-500 font-extrabold uppercase tracking-widest block mt-1">Authorization Denied</span>
+                      </div>
+                    </div>
+
+                    <p className="text-base md:text-lg text-slate-650 leading-relaxed font-semibold">
+                      Hi <strong className="text-slate-900 font-extrabold">{rejectedUserName}</strong>! Unfortunately, your branch terminal registration request for <strong className="text-indigo-700 font-extrabold">{modalShopName}</strong> has been rejected by our administration.
+                    </p>
+
+                    {/* Highlighted Warning Block */}
+                    <div className="bg-red-50/60 border border-red-100 rounded-2xl p-6 text-sm md:text-base text-red-800 leading-relaxed font-semibold">
+                      Rejection usually occurs due to invalid details, mismatched verification criteria, or service restrictions. Please check with our helpline for detailed reasons.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Checklist & action (5/12 cols) */}
+                <div className="md:col-span-5 flex flex-col justify-between gap-6">
+                  {/* Checklist steps */}
+                  <div className="bg-slate-50/80 rounded-2xl p-6 space-y-6 text-left border border-slate-100 flex-1 flex flex-col justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border-2 border-emerald-200 mt-0.5">
+                        <CheckCircle2 size={16} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-slate-800 leading-tight">Registration Submitted</p>
+                        <p className="text-xs md:text-sm text-slate-555 font-semibold mt-1 font-mono">{modalEmail}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-red-50 text-red-650 flex items-center justify-center shrink-0 border-2 border-red-200 mt-0.5">
+                        <X size={14} className="text-red-600" strokeWidth={3} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-red-650 leading-tight">Request Rejected</p>
+                        <p className="text-xs md:text-sm text-red-550 font-semibold mt-1">Branch registration rejected</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="size-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border-2 border-amber-200 mt-0.5">
+                        <AlertCircle size={15} strokeWidth={2.5} className="text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-black text-amber-650 leading-tight">Reactivation Helpline</p>
+                        <p className="text-xs md:text-sm text-slate-550 font-semibold mt-1 font-mono">Contact support: {modalPhone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dismiss button */}
+                  <button
+                    onClick={() => setShowRejectedModal(false)}
+                    className="w-full py-4 bg-slate-950 hover:bg-slate-800 text-white text-base font-extrabold rounded-2xl transition-all cursor-pointer active:scale-98 flex items-center justify-center gap-2 shadow-sm shrink-0"
+                  >
+                    <X size={18} />
+                    Dismiss Notice
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Left Column - Brand & Showcase (Hidden on Mobile) */}
       <div className="lg:col-span-5 bg-[#03050a] text-white p-8 lg:py-12 lg:px-12 flex flex-col justify-between hidden lg:flex relative overflow-hidden select-none border-r border-white/5">
         {/* Layered Cyber Ambient Glows */}
@@ -271,13 +612,15 @@ export default function LoginPage() {
               </span>
             </div>
 
-            {/* Support button */}
-            <button
-              type="button"
-              className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50/80 rounded-xl text-sm text-slate-700 font-semibold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-2xs hover:shadow-xs hover:border-slate-300 cursor-pointer">
-              <HelpCircle className="size-4.5 text-sky-500" />
-              <span>Don&apos;t have an account? <span className="text-sky-600 font-bold hover:underline">Contact Support</span></span>
-            </button>
+            {/* Register link */}
+            <Link href="/auth/signup" className="block w-full">
+              <button
+                type="button"
+                className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50/80 rounded-xl text-sm text-slate-700 font-semibold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-2xs hover:shadow-xs hover:border-slate-300 cursor-pointer">
+                <HelpCircle className="size-4.5 text-sky-500" />
+                <span>Don&apos;t have an account? <span className="text-sky-600 font-bold hover:underline">Create Account</span></span>
+              </button>
+            </Link>
           </div>
         </div>
 

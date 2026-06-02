@@ -7,7 +7,8 @@ export interface IUser extends Document {
   name: string;
   shop: mongoose.Types.ObjectId;
   role: 'owner' | 'staff';
-  status: 'active' | 'inactive';
+  status: 'pending' | 'active' | 'blocked' | 'inactive' | 'rejected';
+  blockReason?: string;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(enteredPassword: string): Promise<boolean>;
@@ -25,7 +26,7 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 8,
     },
     name: {
       type: String,
@@ -43,8 +44,12 @@ const userSchema = new Schema<IUser>(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
+      enum: ['pending', 'active', 'blocked', 'inactive', 'rejected'],
+      default: 'pending',
+    },
+    blockReason: {
+      type: String,
+      default: '',
     },
   },
   {
@@ -69,4 +74,11 @@ userSchema.methods.comparePassword = async function (
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+// Clear cached model so Next.js hot-reload always uses the current schema
+// (prevents stale enum errors after schema changes)
+if (mongoose.models.User) {
+  delete mongoose.models.User;
+}
+
+export default mongoose.model<IUser>('User', userSchema);
+

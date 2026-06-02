@@ -11,7 +11,7 @@ export interface JwtPayload {
   exp?: number;
 }
 
-export function generateToken(payload: Omit<JwtPayload, 'exp'>, expiresIn = '7d'): string {
+export function generateToken(payload: Omit<JwtPayload, 'exp'>, expiresIn: any = '7d'): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
