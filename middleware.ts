@@ -6,7 +6,9 @@ const publicRoutes = [
   '/auth/login',
   '/auth/signup',
   '/api/auth/login',
-  '/api/auth/signup'
+  '/api/auth/signup',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password'
 ];
 
 export function middleware(request: NextRequest) {

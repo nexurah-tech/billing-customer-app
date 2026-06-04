@@ -9,6 +9,8 @@ export interface IUser extends Document {
   role: 'owner' | 'staff';
   status: 'pending' | 'active' | 'blocked' | 'inactive' | 'rejected';
   blockReason?: string;
+  resetOtp?: string;
+  resetOtpExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(enteredPassword: string): Promise<boolean>;
@@ -50,6 +52,14 @@ const userSchema = new Schema<IUser>(
     blockReason: {
       type: String,
       default: '',
+    },
+    resetOtp: {
+      type: String,
+      default: null,
+    },
+    resetOtpExpiry: {
+      type: Date,
+      default: null,
     },
   },
   {

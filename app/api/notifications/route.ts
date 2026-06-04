@@ -18,9 +18,10 @@ export async function GET(request: NextRequest) {
     const userId = new mongoose.Types.ObjectId(auth.userId);
 
     // Fetch notifications: direct alerts for this shop OR global broadcasts
-    // Use $in with null to match both explicit null and missing field (MongoDB behaviour)
+    // Exclude admin-only notifications and explicit admin alert types
     const notifications = await Notification.find({
-      isAdminOnly: { $ne: true }, // Exclude notifications marked for super-admin panel alone
+      isAdminOnly: { $ne: true },
+      title: { $nin: [/Terminal Sign-in Attempt/i, /Approval Request/i] },
       $or: [
         { targetShop: shopId },
         { targetShop: { $in: [null, undefined] } },
@@ -69,7 +70,8 @@ export async function POST(request: NextRequest) {
     if (markAllAsRead) {
       // Mark all applicable notifications as read
       const notifications = await Notification.find({
-        isAdminOnly: { $ne: true }, // Exclude notifications marked for super-admin panel alone
+        isAdminOnly: { $ne: true },
+        title: { $nin: [/Terminal Sign-in Attempt/i, /Approval Request/i] },
         $or: [
           { targetShop: shopId },
           { targetShop: null },
