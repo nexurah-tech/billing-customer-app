@@ -118,14 +118,14 @@ export function Sidebar() {
   };
 
   return (
-    <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[76px]' : 'w-64'} h-screen bg-[#03050a] border-r border-white/5 flex flex-col text-slate-300 font-sans select-none relative overflow-hidden shrink-0`}>
+    <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[76px]' : 'w-64'} h-screen bg-[#0f172a] border-r border-slate-800/80 flex flex-col text-slate-300 font-sans select-none relative overflow-hidden shrink-0`}>
 
       {/* Ambient blobs */}
       <div className="absolute top-0 left-0 w-[250px] h-[250px] bg-sky-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[250px] h-[250px] bg-indigo-500/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
       {/* ── Branding ── */}
-      <div className="relative z-10 shrink-0 px-4 pt-5 pb-4 border-b border-white/5 flex items-center justify-between">
+      <div className="relative z-10 shrink-0 px-4 pt-5 pb-4 border-b border-slate-800/60 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
             src="/logo.png"
@@ -152,7 +152,7 @@ export function Sidebar() {
 
       {isCollapsed && (
         <div className="absolute top-20 left-0 w-full flex justify-center z-20">
-          <button onClick={() => setIsCollapsed(false)} className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/10 rounded-lg transition-colors bg-[#03050a]">
+          <button onClick={() => setIsCollapsed(false)} className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-white/10 rounded-lg transition-colors bg-[#0f172a]">
             <PanelLeftOpen size={16} />
           </button>
         </div>
@@ -187,9 +187,9 @@ export function Sidebar() {
       </div>
 
       {/* ── Footer — always pinned ── */}
-      <div className="relative z-10 shrink-0 border-t border-white/5 p-3 space-y-2">
+      <div className="relative z-10 shrink-0 border-t border-slate-800/60 p-3 space-y-2">
         {/* Shop card */}
-        <div className={`bg-[#0b0f19]/40 border border-white/[0.06] backdrop-blur-md px-3 py-2.5 rounded-xl flex items-center justify-center ${isCollapsed ? 'p-2' : 'gap-3'}`}>
+        <div className={`bg-slate-950/40 border border-slate-800/60 backdrop-blur-md px-3 py-2.5 rounded-xl flex items-center justify-center ${isCollapsed ? 'p-2' : 'gap-3'}`}>
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-[10px] tracking-wider shrink-0">
             {initials}
           </div>
@@ -209,7 +209,7 @@ export function Sidebar() {
         {/* Sign out */}
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center justify-center gap-2 rounded-xl text-[11.5px] font-semibold text-slate-500 hover:text-red-400 hover:bg-red-500/8 border border-white/[0.05] hover:border-red-500/20 transition-all duration-200 cursor-pointer ${isCollapsed ? 'p-2' : 'px-4 py-2'}`}
+          className={`w-full flex items-center justify-center gap-2 rounded-xl text-[11.5px] font-semibold text-slate-500 hover:text-red-400 hover:bg-red-500/8 border border-slate-800/40 hover:border-red-500/20 transition-all duration-200 cursor-pointer ${isCollapsed ? 'p-2' : 'px-4 py-2'}`}
           title={isCollapsed ? "Sign out" : undefined}
         >
           <LogOut size={12} className="shrink-0" />

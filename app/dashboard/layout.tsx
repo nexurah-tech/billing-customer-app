@@ -23,6 +23,13 @@ export default function DashboardLayout({
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
 
+  const notificationsRef = useRef<any[]>([]);
+  const isInitialFetchRef = useRef(true);
+
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
+
   // Draggable, resizable floating notification window state
   const [activeNotification, setActiveNotification] = useState<any | null>(null);
   const [windowPosition, setWindowPosition] = useState({ x: 380, y: 100 });
@@ -171,23 +178,51 @@ export default function DashboardLayout({
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` },
+      if (!token) return;
+
+      const response = await fetch(`/api/notifications?t=${Date.now()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
       });
       const data = await response.json();
       if (data.success) {
-        setNotifications(data.data.notifications);
+        const fetchedNotifs = data.data.notifications || [];
+
+        // Check if there are any new unread notifications compared to our current list
+        const newUnreadNotifs = fetchedNotifs.filter((n: any) => {
+          const isAlreadyKnown = notificationsRef.current.some((existing) => existing.id === n.id);
+          return !isAlreadyKnown && !n.isRead;
+        });
+
+        setNotifications(fetchedNotifs);
         setUnreadNotificationsCount(data.data.unreadCount);
+
+        // If it's not the initial load fetch and we found new unread notifications, trigger alert
+        if (!isInitialFetchRef.current && newUnreadNotifs.length > 0) {
+          const audio = new Audio('/notification-sound_1.mp3');
+          audio.play().catch((err) => {
+            console.warn('Audio playback failed or blocked by browser policies:', err);
+          });
+
+          // Set the latest new notification as active to open the floating window
+          setActiveNotification(newUnreadNotifs[0]);
+        }
       }
     } catch (err) {
       console.error('Error fetching admin notifications:', err);
+    } finally {
+      isInitialFetchRef.current = false;
     }
   };
 
   useEffect(() => {
     if (!authorized) return;
+    isInitialFetchRef.current = true;
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    const interval = setInterval(fetchNotifications, 5000); // Poll every 5s for real-time notifications
     return () => clearInterval(interval);
   }, [authorized]);
 
