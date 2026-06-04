@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Plus, Edit, Trash2, AlertCircle, Search, Package,
-  Tag, IndianRupee, Layers, ShieldAlert, CheckCircle2,
+  Tag, IndianRupee, Layers, ShieldAlert, CheckCircle2, Upload,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
+import BulkUploadModal from '@/components/BulkUploadModal';
 
 interface Product {
   _id: string;
@@ -25,20 +27,28 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetchProducts();
-  }, [search]);
+  }, [search, currentPage]);
 
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const url = `/api/products${search ? `?search=${search}` : ''}`;
+      const url = `/api/products?page=${currentPage}&limit=10${search ? `&search=${search}` : ''}`;
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (data.success) setProducts(data.data.products);
+      if (data.success) {
+        setProducts(data.data.products);
+        setTotalPages(data.data.pagination.pages || 1);
+        setTotalCount(data.data.pagination.total || 0);
+      }
     } catch (err) {
       console.error('Error fetching products:', err);
     } finally {
@@ -77,12 +87,21 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        <Link href="/dashboard/products/new">
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 px-5 font-bold text-xs gap-2 shadow-sm cursor-pointer transition-all">
-            <Plus size={15} />
-            Add New Product
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsBulkModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 px-5 font-bold text-xs gap-2 shadow-sm cursor-pointer transition-all"
+          >
+            <Upload size={15} />
+            Bulk Import
           </Button>
-        </Link>
+          <Link href="/dashboard/products/new">
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 px-5 font-bold text-xs gap-2 shadow-sm cursor-pointer transition-all">
+              <Plus size={15} />
+              Add New Product
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Search + Count row ── */}
@@ -93,13 +112,16 @@ export default function ProductsPage() {
             type="text"
             placeholder="Search by product name or SKU code..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-10 h-10 rounded-xl border-slate-200 text-sm placeholder:text-slate-400 focus-visible:border-indigo-500 bg-white"
           />
         </div>
         {!loading && (
           <span className="shrink-0 text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200/60 px-3.5 py-2 rounded-xl">
-            {products.length} product{products.length !== 1 ? 's' : ''} found
+            {totalCount} product{totalCount !== 1 ? 's' : ''} found
           </span>
         )}
       </div>
@@ -114,11 +136,19 @@ export default function ProductsPage() {
           <Package className="size-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-700 font-bold text-sm">No products in catalogue</p>
           <p className="text-xs text-slate-400 mt-1 mb-6">Create SKU records to start checkout operations</p>
-          <Link href="/dashboard/products/new">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 font-semibold rounded-xl text-xs px-5 cursor-pointer">
-              Register First Product
+          <div className="flex justify-center gap-3">
+            <Button 
+              onClick={() => setIsBulkModalOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl text-xs px-5 cursor-pointer"
+            >
+              Bulk Import Spreadsheet
             </Button>
-          </Link>
+            <Link href="/dashboard/products/new">
+              <Button className="bg-indigo-600 hover:bg-indigo-700 font-semibold rounded-xl text-xs px-5 cursor-pointer">
+                Register First Product
+              </Button>
+            </Link>
+          </div>
         </Card>
       ) : (
         <Card className="overflow-hidden border-slate-200/80 shadow-sm rounded-2xl">
@@ -265,16 +295,54 @@ export default function ProductsPage() {
           </div>
 
           {/* Table footer */}
-          <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-            <p className="text-[11px] text-slate-400 font-semibold">
-              {products.length} total products
-            </p>
-            <p className="text-[11px] text-slate-400 font-semibold">
-              {products.filter(p => p.stock < (p.reorderLevel || 10)).length} low stock
-            </p>
+          <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 select-none">
+            <div className="flex gap-4">
+              <p className="text-[11px] text-slate-400 font-semibold">
+                {totalCount} total products
+              </p>
+              <p className="text-[11px] text-slate-400 font-semibold">
+                {products.filter(p => p.stock < (p.reorderLevel || 10)).length} low stock on this page
+              </p>
+            </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="size-7 rounded-lg text-slate-500 border-slate-200 cursor-pointer disabled:opacity-40"
+                >
+                  <ChevronLeft size={13} />
+                </Button>
+                
+                <span className="text-[10px] font-bold text-slate-500 px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200/50">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="size-7 rounded-lg text-slate-500 border-slate-200 cursor-pointer disabled:opacity-40"
+                >
+                  <ChevronRight size={13} />
+                </Button>
+              </div>
+            )}
           </div>
         </Card>
       )}
+
+      {/* Bulk Import Modal */}
+      <BulkUploadModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSuccess={fetchProducts}
+      />
     </div>
   );
 }

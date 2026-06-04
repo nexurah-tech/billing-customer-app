@@ -1,0 +1,6 @@
+Name,SKU,Category,Unit Price,Cost Price,Stock,Reorder Level,Tax Applicable,Description
+Coca Cola 500ml,COKE500,Beverages,45,35,100,15,TRUE,Chilled soft drink bottle
+Pepsi 500ml,PEPSI500,Beverages,40,32,80,10,TRUE,Chilled soft drink bottle
+Lays Salted Chips,LAYSSALT,Snacks,20,15,50,10,TRUE,Classic salted potato chips
+Amul Butter 100g,AMULBUT100,Dairy,60,52,30,5,TRUE,Salted pasteurized butter
+Britannia Bourbon,BRITBOURB,Snacks,30,24,60,12,TRUE,Chocolate cream biscuits
