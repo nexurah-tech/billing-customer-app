@@ -30,7 +30,6 @@ const productSchema = new Schema<IProduct>(
     sku: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     category: {
@@ -80,7 +79,7 @@ const productSchema = new Schema<IProduct>(
 
 // Index for faster queries
 productSchema.index({ shop: 1, category: 1 });
-productSchema.index({ sku: 1 });
+productSchema.index({ shop: 1, sku: 1 }, { unique: true });
 
 export default mongoose.models.Product ||
   mongoose.model<IProduct>('Product', productSchema);

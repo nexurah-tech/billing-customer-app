@@ -32,6 +32,19 @@ export async function POST(request: NextRequest) {
         return errorResponse(`Duplicate SKU code in upload: ${skuUpper}`, 400);
       }
       skus.add(skuUpper);
+
+      // Numeric field validations on the backend
+      const unitPrice = Number(item.unitPrice);
+      const costPrice = Number(item.costPrice);
+      const stock = item.stock !== undefined ? Number(item.stock) : 0;
+      const reorderLevel = item.reorderLevel !== undefined ? Number(item.reorderLevel) : 10;
+
+      if (isNaN(unitPrice) || unitPrice < 0 || isNaN(costPrice) || costPrice < 0) {
+        return errorResponse(`Invalid price values for product "${item.name}". Unit Price and Cost Price must be valid numbers >= 0.`, 400);
+      }
+      if (isNaN(stock) || stock < 0 || isNaN(reorderLevel) || reorderLevel < 0) {
+        return errorResponse(`Invalid inventory values for product "${item.name}". Stock and Reorder Level must be valid numbers >= 0.`, 400);
+      }
     }
 
     // 2. Check for duplicate SKUs in the database and skip them
@@ -57,37 +70,39 @@ export async function POST(request: NextRequest) {
       }, 200);
     }
 
-    // 3. Resolve categories (Find or Create) for filtered products
+    // 3. Resolve categories (Find or Create) for filtered products case-insensitively
     const uniqueCategoryNames = Array.from(
       new Set(productsToProcess.map((item: any) => item.category.trim()))
     );
 
-    // Fetch existing categories for the shop
-    const existingCategories = await Category.find({
-      shop: auth.shopId,
-      name: { $in: uniqueCategoryNames }
-    });
+    // Fetch all existing categories for the shop to match case-insensitively in memory
+    const existingCategories = await Category.find({ shop: auth.shopId });
 
     const categoryMap: Record<string, string> = {};
     existingCategories.forEach((cat) => {
-      categoryMap[cat.name.toLowerCase()] = cat._id.toString();
+      categoryMap[cat.name.trim().toLowerCase()] = cat._id.toString();
     });
 
     // Create missing categories
     const newCategoriesToCreate = [];
+    const seenNewCategories = new Set<string>();
+
     for (const catName of uniqueCategoryNames) {
-      if (!categoryMap[catName.toLowerCase()]) {
+      const normalizedName = catName.trim();
+      const lowerName = normalizedName.toLowerCase();
+      if (!categoryMap[lowerName] && !seenNewCategories.has(lowerName)) {
         newCategoriesToCreate.push({
-          name: catName,
+          name: normalizedName,
           shop: auth.shopId,
         });
+        seenNewCategories.add(lowerName);
       }
     }
 
     if (newCategoriesToCreate.length > 0) {
       const createdCategories = await Category.insertMany(newCategoriesToCreate);
       createdCategories.forEach((cat) => {
-        categoryMap[cat.name.toLowerCase()] = cat._id.toString();
+        categoryMap[cat.name.trim().toLowerCase()] = cat._id.toString();
       });
     }
 
@@ -95,6 +110,10 @@ export async function POST(request: NextRequest) {
     const productsToInsert = productsToProcess.map((item: any) => {
       const catName = item.category.trim();
       const catId = categoryMap[catName.toLowerCase()];
+
+      if (!catId) {
+        throw new Error(`Category "${catName}" could not be resolved`);
+      }
 
       return {
         name: item.name.trim(),
@@ -123,6 +142,14 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Bulk upload products error:', error);
+    
+    // Handle MongoDB duplicate key error gracefully
+    if (error.code === 11000) {
+      const keyValue = error.keyValue || {};
+      const skuValue = keyValue.sku || 'unknown';
+      return errorResponse(`Duplicate SKU code error: a product with SKU "${skuValue}" already exists in your inventory.`, 400);
+    }
+    
     return errorResponse(error.message || 'Failed to bulk upload products', 500);
   }
 }

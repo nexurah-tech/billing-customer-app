@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validation
-    if (!name || !sku || !category || !unitPrice || !costPrice) {
+    if (!name || !sku || !category || unitPrice === undefined || unitPrice === null || costPrice === undefined || costPrice === null) {
       return errorResponse('Missing required fields', 400);
     }
 
