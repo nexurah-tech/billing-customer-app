@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Cpu, FileSpreadsheet, Percent, Bell, Info,
-  Save, CheckCircle2, Loader2, Lock,
+  Save, CheckCircle2, Loader2, Lock, CreditCard, Calendar, X, AlertTriangle
 } from 'lucide-react';
 
 interface ShopForm {
@@ -42,9 +42,32 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
+  // Subscription states
+  const [subData, setSubData] = useState<any>(null);
+  const [subLoading, setSubLoading] = useState(true);
+  const [showQrModal, setShowQrModal] = useState(false);
+
   useEffect(() => {
     loadShop();
+    loadSubscription();
   }, []);
+
+  const loadSubscription = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/shop/subscription', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubData(data.data);
+      }
+    } catch (err) {
+      console.error('Error loading subscription details:', err);
+    } finally {
+      setSubLoading(false);
+    }
+  };
 
   const loadShop = async () => {
     try {
@@ -350,8 +373,9 @@ export default function SettingsPage() {
           </form>
         </div>
 
-        {/* RIGHT — System configs (read-only) */}
+        {/* RIGHT — System configs and subscription details */}
         <div className="md:col-span-5 space-y-6">
+          {/* Card 1: System configs */}
           <Card className="p-6 border-slate-200/80 shadow-xs space-y-4">
             <div>
               <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -427,8 +451,162 @@ export default function SettingsPage() {
               </div>
             </div>
           </Card>
+
+          {/* Card 2: Subscription & Billing */}
+          <Card className="p-6 border-slate-200/80 shadow-xs space-y-4">
+            <div>
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <CreditCard size={14} className="text-indigo-650" />
+                Subscription & Billing
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Monitor subscription renewal and billing logs
+              </p>
+            </div>
+
+            {subLoading ? (
+              <div className="py-6 text-center text-xs text-slate-405 animate-pulse font-medium">
+                Loading subscription status...
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-3.5 bg-slate-50 border border-slate-200/40 rounded-xl space-y-2.5">
+                  <div className="flex justify-between items-center text-xs font-bold">
+                    <span className="text-slate-500">Plan Status</span>
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] uppercase font-black tracking-wider border ${
+                      subData?.subscription?.status === 'active'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
+                        : subData?.subscription?.status === 'trialing'
+                        ? 'bg-indigo-50 text-indigo-750 border-indigo-200/50'
+                        : 'bg-amber-50 text-amber-750 border-amber-200/50'
+                    }`}>
+                      {subData?.subscription?.status || 'inactive'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs font-bold">
+                    <span className="text-slate-500">Billing Cycle</span>
+                    <span className="text-slate-800 uppercase text-[9.5px] font-black tracking-wider">
+                      {subData?.subscription?.plan === 'free_trial' ? 'Free Trial' : 'Monthly Premium'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs font-bold">
+                    <span className="text-slate-500">Expires On</span>
+                    <span className="text-slate-750 font-mono text-[10.5px]">
+                      {subData?.subscription?.expiresAt 
+                        ? new Date(subData.subscription.expiresAt).toLocaleDateString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                          })
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setShowQrModal(true)}
+                  className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-2 cursor-pointer shadow-sm transition-all"
+                >
+                  <CreditCard size={14} /> View QR & Instructions
+                </Button>
+
+                {/* Sub-section: Payment Log History */}
+                <div className="pt-2">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-0.5 mb-2">
+                    Payment Logs History
+                  </h4>
+                  {!subData?.payments || subData.payments.length === 0 ? (
+                    <p className="text-[10px] text-slate-400 italic text-center py-4 font-bold border border-dashed border-slate-200 rounded-xl select-none">
+                      No payment transactions logged.
+                    </p>
+                  ) : (
+                    <div className="max-h-36 overflow-y-auto divide-y divide-slate-100 border border-slate-200/60 rounded-xl overflow-hidden no-scrollbar bg-white shadow-2xs">
+                      {subData.payments.map((payment: any, index: number) => (
+                        <div key={index} className="p-3 text-[10.5px] leading-relaxed hover:bg-slate-50 flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <p className="font-extrabold text-slate-805">
+                              ₹{payment.amount} Renewal
+                            </p>
+                            <p className="text-[9px] text-slate-450 font-semibold">
+                              Method: {payment.paymentMethod?.toUpperCase()} {payment.referenceId ? `· Ref: ${payment.referenceId}` : ''}
+                            </p>
+                          </div>
+                          <span className="text-[9px] font-mono text-slate-500 bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 rounded font-bold">
+                            {new Date(payment.paymentDate).toLocaleDateString('en-IN', {
+                              day: '2-digit', month: 'short'
+                            })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </Card>
         </div>
       </div>
+
+      {/* ── QR Code Payment Instructions Modal ── */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 select-none">
+          <div className="w-full max-w-md p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xl flex flex-col space-y-5 animate-in zoom-in-95 duration-200 relative select-text">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3 select-none">
+              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                <CreditCard size={16} className="text-indigo-650" />
+                Subscription Payment Instructions
+              </h3>
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="p-1 hover:bg-slate-150 rounded-lg text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Instruction Body */}
+            <div className="space-y-4 text-xs font-semibold leading-relaxed text-slate-650">
+              <p>
+                To renew your billing terminal, scan the UPI QR code below and transfer the fee. Once paid, please share a screenshot of the transaction details with the admin via WhatsApp.
+              </p>
+
+              {subData?.qrConfig?.paymentQrCodeUrl && (
+                <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex flex-col items-center space-y-3 select-none">
+                  <img
+                    src={subData.qrConfig.paymentQrCodeUrl}
+                    alt="UPI QR Code"
+                    className="size-48 object-contain rounded-lg border border-slate-200 bg-white p-1 shadow-2xs"
+                  />
+                  <div className="text-center space-y-1">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">WhatsApp Contact Link</p>
+                    <p className="text-xs font-mono font-black text-indigo-600">{subData.qrConfig.whatsappNumber}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-amber-50 border border-amber-200/40 rounded-xl p-3.5 flex items-start gap-2.5">
+                <Info size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-amber-900 leading-normal">
+                  Your billing terminal will be fully activated instantly after the admin verifies the screenshot.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-2 select-none">
+              <a
+                href={`https://wa.me/${(subData?.qrConfig?.whatsappNumber || '919600950190').replace(/[^0-9]/g, '')}?text=Hi%20Admin,%20I%20have%20sent%2520payment%2520for%2520my%2520billing%2520terminal%2520subscription.%20Here%20is%20the%20screenshot.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 text-center flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                Send Screenshot via WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

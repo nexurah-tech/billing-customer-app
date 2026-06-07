@@ -19,6 +19,8 @@ export default function DashboardLayout({
   // Real-time status & notifications states
   const [status, setStatus] = useState<'pending' | 'active' | 'blocked' | 'inactive'>('active');
   const [statusChecked, setStatusChecked] = useState(false);
+  const [blockReason, setBlockReason] = useState<string>('');
+  const [subscription, setSubscription] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
@@ -161,6 +163,8 @@ export default function DashboardLayout({
         const data = await response.json();
         if (data.success) {
           setStatus(data.data.status);
+          setBlockReason(data.data.blockReason || '');
+          setSubscription(data.data.subscription || null);
         }
       } catch (err) {
         console.error('Error checking user status:', err);
@@ -304,21 +308,76 @@ export default function DashboardLayout({
       router.replace('/auth/login');
     };
 
+    const isSubscriptionBlock = status === 'blocked' && blockReason === 'Subscription Payment Overdue';
+
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 select-none">
-        <div className="w-full max-w-md p-8 bg-white border border-slate-200/80 rounded-3xl shadow-2xl flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 select-none">
+        <div className={`w-full ${isSubscriptionBlock ? 'max-w-lg' : 'max-w-md'} p-8 bg-white border border-slate-200/80 rounded-3xl shadow-2xl flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200`}>
           {status === 'blocked' ? (
-            <>
-              <div className="size-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-sm">
-                <AlertCircle size={32} strokeWidth={2} />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">POS Terminal Suspended</h2>
-                <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                  Your billing terminal access has been suspended due to pending monthly dues. Please contact NexBill administrator at <strong className="text-indigo-600">admin@nexurah.com</strong> to clear your balance and restore access.
-                </p>
-              </div>
-            </>
+            isSubscriptionBlock ? (
+              <>
+                <div className="size-16 rounded-2xl bg-red-50 text-red-650 flex items-center justify-center shadow-xs">
+                  <CreditCard size={32} strokeWidth={2} />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">POS Terminal Locked</h2>
+                  <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                    Your monthly subscription has expired and has passed the 3-day grace period. To restore billing functionality, please scan the QR code to pay, then send your transaction details/screenshot to WhatsApp.
+                  </p>
+                </div>
+
+                {subscription?.paymentQrCodeUrl && (
+                  <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex flex-col items-center space-y-3">
+                    <img 
+                      src={subscription.paymentQrCodeUrl} 
+                      alt="UPI QR Code" 
+                      className="size-48 object-contain rounded-lg border border-slate-200 bg-white p-1 shadow-2xs" 
+                    />
+                    <div className="text-center space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">WhatsApp Payment Link</p>
+                      <p className="text-xs font-mono font-black text-indigo-600">{subscription.whatsappNumber}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="w-full flex gap-3 pt-2">
+                  <a
+                    href={`https://wa.me/${(subscription?.whatsappNumber || '919600950190').replace(/[^0-9]/g, '')}?text=Hi%20Admin,%20I%20have%20sent%20payment%20for%20my%20billing%2520terminal%20subscription.%20Here%20is%20the%20screenshot.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 text-center flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    Send Screenshot via WhatsApp
+                  </a>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl transition-all border border-slate-200 cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="size-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-sm">
+                  <AlertCircle size={32} strokeWidth={2} />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">POS Terminal Suspended</h2>
+                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                    Your billing terminal access has been suspended due to administrative reasons. Please contact NexBill administrator at <strong className="text-indigo-600">admin@nexurah.com</strong>.
+                  </p>
+                </div>
+                <div className="w-full pt-2">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full py-3 bg-slate-950 hover:bg-slate-900 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+                  >
+                    Sign Out Account
+                  </button>
+                </div>
+              </>
+            )
           ) : (
             <>
               <div className="size-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm">
@@ -330,17 +389,16 @@ export default function DashboardLayout({
                   Thank you for registering at NexBill. Your terminal account is currently pending approval by the super administrator. Access will be enabled shortly once your shop profile is verified.
                 </p>
               </div>
+              <div className="w-full pt-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full py-3 bg-slate-950 hover:bg-slate-900 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+                >
+                  Sign Out Account
+                </button>
+              </div>
             </>
           )}
-
-          <div className="w-full pt-2">
-            <button
-              onClick={handleLogout}
-              className="w-full py-3 bg-slate-950 hover:bg-slate-900 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
-            >
-              Sign Out Account
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -480,8 +538,27 @@ export default function DashboardLayout({
         </header>
 
         {/* Dynamic page content */}
-        <main className="flex-1 overflow-auto bg-slate-50/35 relative">
-          {children}
+        <main className="flex-1 overflow-auto bg-slate-50/35 relative flex flex-col">
+          {subscription?.isGracePeriod && (
+            <div className="bg-amber-600 text-white px-8 py-3.5 text-xs font-bold flex flex-col sm:flex-row gap-3 sm:items-center justify-between shadow-md select-none animate-in slide-in-from-top duration-300">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle size={16} className="animate-pulse shrink-0 text-amber-250" />
+                <span className="leading-relaxed">
+                  Your monthly subscription has expired! You are currently in a <strong>3-day grace period</strong>. 
+                  Please complete payment within <strong>{subscription.graceDaysLeft} day(s)</strong> to prevent terminal lockout.
+                </span>
+              </div>
+              <button
+                onClick={() => router.push('/dashboard/settings')}
+                className="bg-white hover:bg-slate-100 text-amber-800 text-[10.5px] font-black px-4.5 py-2 rounded-xl transition-all shadow-xs self-start sm:self-auto cursor-pointer"
+              >
+                Pay Renewal Fee
+              </button>
+            </div>
+          )}
+          <div className="flex-1 overflow-auto">
+            {children}
+          </div>
         </main>
       </div>
 

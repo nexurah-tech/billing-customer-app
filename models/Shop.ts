@@ -14,6 +14,12 @@ export interface IShop extends Document {
     open: string;
     close: string;
   };
+  subscriptionStatus: 'active' | 'trialing' | 'unpaid' | 'past_due' | 'suspended';
+  subscriptionPlan: 'monthly' | 'yearly' | 'free_trial';
+  subscriptionExpiresAt: Date;
+  lastPaymentDate?: Date;
+  lastActiveAt?: Date;
+  trialEndsAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -66,6 +72,31 @@ const shopSchema = new Schema<IShop>(
         type: String,
         default: '21:00',
       },
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'trialing', 'unpaid', 'past_due', 'suspended'],
+      default: 'trialing',
+    },
+    subscriptionPlan: {
+      type: String,
+      enum: ['monthly', 'yearly', 'free_trial'],
+      default: 'free_trial',
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days free trial
+    },
+    lastPaymentDate: {
+      type: Date,
+    },
+    lastActiveAt: {
+      type: Date,
+      default: Date.now,
+    },
+    trialEndsAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     },
   },
   {
