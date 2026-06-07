@@ -240,6 +240,14 @@ The app uses JWT tokens for API authentication. Tokens are stored in localStorag
 - Multi-location support
 - Inventory forecasting
 
+## System Documentation
+
+Comprehensive technical details and system flows are available in the [docs/](file:///d:/Nexurah/own/NexBilling/billing-system-for-retailers/docs) folder:
+- **[System Architecture](file:///d:/Nexurah/own/NexBilling/billing-system-for-retailers/docs/architecture.md)**: Overall tech stack, tenant isolation mechanisms, and workspace structure.
+- **[Operational User Flows](file:///d:/Nexurah/own/NexBilling/billing-system-for-retailers/docs/features-flow.md)**: Sequenced diagrams for checkouts, inventory imports, and grace/lockout subscription lifecycles.
+- **[Database Schemas](file:///d:/Nexurah/own/NexBilling/billing-system-for-retailers/docs/database-schemas.md)**: Mongoose schema reference lists, data types, and index constraints.
+- **[REST API Guide](file:///d:/Nexurah/own/NexBilling/billing-system-for-retailers/docs/api-guide.md)**: Endpoints query parameter matrices, payload JSON parameters, and standard response formats.
+
 ## Contributing
 
 Feel free to extend this system with additional features. The codebase is organized for easy expansion.
