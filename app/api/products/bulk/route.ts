@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
         name: item.name.trim(),
         sku: item.sku.toUpperCase().trim(),
         category: catId,
+        unit: item.unit ? item.unit.trim() : 'pcs',
         unitPrice: Number(item.unitPrice),
         costPrice: Number(item.costPrice),
         stock: Number(item.stock || 0),

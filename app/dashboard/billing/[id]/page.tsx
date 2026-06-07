@@ -18,6 +18,7 @@ interface Invoice {
     product: {
       name: string;
       sku: string;
+      unit?: string;
     };
     quantity: number;
     price: number;
@@ -311,10 +312,10 @@ export default function InvoiceDetailPage({
                       </p>
                     </td>
                     <td className="px-3 py-2 text-center text-xs font-bold text-slate-950">
-                      {item.quantity}
+                      {item.quantity} {item.product.unit || 'pcs'}
                     </td>
                     <td className="px-3 py-2 text-right text-xs text-slate-600 font-medium">
-                      ₹{item.price.toFixed(2)}
+                      ₹{item.price.toFixed(2)} / {item.product.unit || 'pcs'}
                     </td>
                     <td className="px-3 py-2 text-right text-xs font-black text-slate-900">
                       ₹{item.subtotal.toFixed(2)}
@@ -330,7 +331,7 @@ export default function InvoiceDetailPage({
               {invoice.items.length} line item{invoice.items.length !== 1 ? 's' : ''}
             </span>
             <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
-              {invoice.items.reduce((s, i) => s + i.quantity, 0)} units total
+              Total Quantity: {invoice.items.reduce((s, i) => s + i.quantity, 0)}
             </span>
           </div>
         </div>

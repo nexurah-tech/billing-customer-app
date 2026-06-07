@@ -21,6 +21,7 @@ interface Product {
   stock: number;
   reorderLevel: number;
   imageUrl?: string;
+  unit?: string;
 }
 
 export default function ProductsPage() {
@@ -245,7 +246,7 @@ export default function ProductsPage() {
                           )}
                           <span className={`text-[13px] font-bold ${isLowStock ? 'text-rose-600' : 'text-slate-800'}`}>
                             {product.stock}
-                            <span className="text-[10px] font-semibold text-slate-400 ml-1">units</span>
+                            <span className="text-[10px] font-semibold text-slate-400 ml-1">{product.unit || 'pcs'}</span>
                           </span>
                         </div>
                       </td>

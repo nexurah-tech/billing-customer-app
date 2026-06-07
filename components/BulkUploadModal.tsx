@@ -25,6 +25,7 @@ interface ParsedProduct {
   name: string;
   sku: string;
   category: string;
+  unit?: string;
   unitPrice: number;
   costPrice: number;
   stock: number;
@@ -49,6 +50,9 @@ const HEADER_MAPPING: Record<string, string> = {
   'product name': 'name',
   'name': 'name',
   'category': 'category',
+  'unit': 'unit',
+  'uom': 'unit',
+  'measurement': 'unit',
   'unit price': 'unitPrice',
   'price': 'unitPrice',
   'cost price': 'costPrice',
@@ -215,6 +219,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
               name: productObj.name ? String(productObj.name).trim() : '',
               sku: productObj.sku ? String(productObj.sku).toUpperCase().trim() : '',
               category: productObj.category ? String(productObj.category).trim() : '',
+              unit: productObj.unit ? String(productObj.unit).trim() : 'pcs',
               unitPrice: isNaN(unitPriceNum) ? 0 : unitPriceNum,
               costPrice: isNaN(costPriceNum) ? 0 : costPriceNum,
               stock: isNaN(stockNum) ? 0 : stockNum,
@@ -465,7 +470,9 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                         <TableCell className="px-4 py-2 font-semibold text-slate-600">{p.category || <span className="text-rose-600 italic">MISSING</span>}</TableCell>
                         <TableCell className="px-4 py-2 text-right font-bold text-slate-900">₹{p.unitPrice.toFixed(2)}</TableCell>
                         <TableCell className="px-4 py-2 text-right font-bold text-slate-900">₹{p.costPrice.toFixed(2)}</TableCell>
-                        <TableCell className="px-4 py-2 text-center font-bold text-slate-800">{p.stock}</TableCell>
+                        <TableCell className="px-4 py-2 text-center font-bold text-slate-800">
+                          {p.stock} <span className="text-[9px] font-semibold text-slate-400">{p.unit || 'pcs'}</span>
+                        </TableCell>
                         <TableCell className="px-4 py-2">
                           {p.isValid ? (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/60">

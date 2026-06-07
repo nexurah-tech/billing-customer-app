@@ -5,6 +5,7 @@ export interface IProduct extends Document {
   description: string;
   sku: string;
   category: mongoose.Types.ObjectId;
+  unit: string;
   unitPrice: number;
   costPrice: number;
   stock: number;
@@ -61,6 +62,11 @@ const productSchema = new Schema<IProduct>(
     taxApplicable: {
       type: Boolean,
       default: true,
+    },
+    unit: {
+      type: String,
+      default: 'pcs',
+      trim: true,
     },
     imageUrl: {
       type: String,

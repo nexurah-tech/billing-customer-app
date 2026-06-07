@@ -43,6 +43,7 @@ interface Product {
   stock: number;
   category?: { _id: string; name: string } | string;
   imageUrl?: string;
+  unit?: string;
 }
 
 interface Customer {
@@ -181,34 +182,47 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
     if (existingIndex > -1) {
       const updated = [...lineItems];
       if (updated[existingIndex].quantity >= product.stock) {
-        alert(`Cannot add more than available stock (${product.stock} units)!`);
+        alert(`Cannot add more than available stock (${product.stock} ${product.unit || 'pcs'})!`);
         return;
       }
-      updated[existingIndex].quantity += 1;
+      // If decimal item, let's step up by 1 unless it exceeds stock, in which case we cap at stock.
+      const step = ['kg', 'litre', 'g', 'ml'].includes(product.unit || 'pcs') ? 0.1 : 1;
+      const nextQty = parseFloat(Math.min(product.stock, updated[existingIndex].quantity + step).toFixed(2));
+      updated[existingIndex].quantity = nextQty;
       setLineItems(updated);
     } else {
+      // Start with 1, or the remaining stock if it's less than 1.
+      const initialQty = ['kg', 'litre', 'g', 'ml'].includes(product.unit || 'pcs')
+        ? Math.min(1, product.stock)
+        : 1;
       setLineItems([
         ...lineItems,
-        { productId: product._id, quantity: 1, price: product.unitPrice },
+        { productId: product._id, quantity: initialQty, price: product.unitPrice },
       ]);
     }
   };
 
   // Stepper handlers
-  const incrementQty = (index: number, stockLimit: number) => {
+  const incrementQty = (index: number, stockLimit: number, unit?: string) => {
     const updated = [...lineItems];
-    if (updated[index].quantity >= stockLimit) {
-      alert(`Cannot exceed active stock of ${stockLimit} units!`);
+    const isDecimal = ['kg', 'litre', 'g', 'ml'].includes(unit || 'pcs');
+    const step = isDecimal ? 0.1 : 1;
+    const newVal = Math.min(stockLimit, parseFloat((updated[index].quantity + step).toFixed(2)));
+    if (newVal === updated[index].quantity) {
+      alert(`Cannot exceed active stock of ${stockLimit} ${unit || 'pcs'}!`);
       return;
     }
-    updated[index].quantity += 1;
+    updated[index].quantity = newVal;
     setLineItems(updated);
   };
 
-  const decrementQty = (index: number) => {
+  const decrementQty = (index: number, unit?: string) => {
     const updated = [...lineItems];
-    if (updated[index].quantity > 1) {
-      updated[index].quantity -= 1;
+    const isDecimal = ['kg', 'litre', 'g', 'ml'].includes(unit || 'pcs');
+    const step = isDecimal ? 0.1 : 1;
+    const newVal = parseFloat((updated[index].quantity - step).toFixed(2));
+    if (newVal > 0) {
+      updated[index].quantity = newVal;
       setLineItems(updated);
     } else {
       removeLineItem(index);
@@ -446,11 +460,11 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                         </span>
                       ) : isLowStock ? (
                         <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-200/40 px-2 py-0.5 rounded-full font-bold">
-                          Stock: {p.stock}
+                          Stock: {p.stock} {p.unit || 'pcs'}
                         </span>
                       ) : (
                         <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-200/40 px-2 py-0.5 rounded-full font-bold">
-                          Stock: {p.stock}
+                          Stock: {p.stock} {p.unit || 'pcs'}
                         </span>
                       )}
                     </div>
@@ -597,7 +611,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                         <p className="text-xs font-bold text-slate-800 truncate leading-snug">{product.name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[10px] text-slate-400 font-mono">{product.sku}</span>
-                          <span className="text-[10px] font-semibold text-slate-600">₹{item.price.toFixed(2)}</span>
+                          <span className="text-[10px] font-semibold text-slate-600">₹{item.price.toFixed(2)} / {product.unit || 'pcs'}</span>
                         </div>
                       </div>
 
@@ -605,15 +619,31 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                       <div className="flex items-center bg-slate-100/90 border border-slate-200/40 rounded-xl p-1 shrink-0">
                         <button
                           type="button"
-                          onClick={() => decrementQty(index)}
+                          onClick={() => decrementQty(index, product.unit)}
                           className="size-6 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 border border-slate-200/45 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
                         >
                           <Minus size={11} strokeWidth={3} />
                         </button>
-                        <span className="w-9 text-center text-xs font-bold text-slate-800">{item.quantity}</span>
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (isNaN(val) || val <= 0) return;
+                            if (val > product.stock) {
+                              alert(`Cannot exceed active stock of ${product.stock} ${product.unit || 'pcs'}!`);
+                              return;
+                            }
+                            const updated = [...lineItems];
+                            updated[index].quantity = val;
+                            setLineItems(updated);
+                          }}
+                          step={['kg', 'litre', 'g', 'ml'].includes(product.unit || 'pcs') ? '0.01' : '1'}
+                          className="w-12 text-center text-xs font-bold text-slate-800 bg-transparent focus:outline-none focus:ring-0 border-b border-dashed border-slate-300 focus:border-indigo-500 mx-1"
+                        />
                         <button
                           type="button"
-                          onClick={() => incrementQty(index, product.stock)}
+                          onClick={() => incrementQty(index, product.stock, product.unit)}
                           className="size-6 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 border border-slate-200/45 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
                         >
                           <Plus size={11} strokeWidth={3} />
@@ -959,9 +989,9 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
                       <div key={idx} className="grid grid-cols-[1fr_auto_auto] items-center px-3 py-2 bg-white">
                         <div className="min-w-0">
                           <p className="text-[11px] font-bold text-slate-800 truncate leading-tight">{it.product?.name}</p>
-                          <p className="text-[9px] text-slate-400 font-mono">₹{(it.price ?? 0).toFixed(2)}</p>
+                          <p className="text-[9px] text-slate-400 font-mono">₹{(it.price ?? 0).toFixed(2)} / {(it.product as any)?.unit || 'pcs'}</p>
                         </div>
-                        <span className="text-[11px] font-semibold text-slate-600 text-center px-3">{it.quantity}</span>
+                        <span className="text-[11px] font-semibold text-slate-600 text-center px-3">{it.quantity} {(it.product as any)?.unit || 'pcs'}</span>
                         <span className="text-[11px] font-black text-slate-900 text-right">₹{(it.subtotal ?? 0).toFixed(2)}</span>
                       </div>
                     ))}

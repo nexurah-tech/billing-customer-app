@@ -25,6 +25,7 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
     description: '',
     sku: '',
     category: '',
+    unit: 'pcs',
     unitPrice: '',
     costPrice: '',
     stock: '',
@@ -74,6 +75,7 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
           description: prod.description || '',
           sku: prod.sku || '',
           category: typeof prod.category === 'object' ? prod.category?._id : prod.category || '',
+          unit: prod.unit || 'pcs',
           unitPrice: String(prod.unitPrice) || '',
           costPrice: String(prod.costPrice) || '',
           stock: String(prod.stock) || '',
@@ -184,8 +186,8 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
           ...formData,
           unitPrice: parseFloat(formData.unitPrice),
           costPrice: parseFloat(formData.costPrice),
-          stock: parseInt(formData.stock),
-          reorderLevel: formData.reorderLevel ? parseInt(formData.reorderLevel) : 0,
+          stock: parseFloat(formData.stock),
+          reorderLevel: formData.reorderLevel ? parseFloat(formData.reorderLevel) : 0,
         }),
       });
 
@@ -402,20 +404,65 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Current Stock *
               </label>
               <Input
                 type="number"
+                step="any"
                 name="stock"
                 value={formData.stock}
                 onChange={handleChange}
-                placeholder="0"
+                placeholder="0.00"
                 required
                 disabled={loading}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Unit of Measure *
+              </label>
+              <Select
+                value={['pcs', 'kg', 'litre', 'g', 'ml', 'box', 'pack'].includes(formData.unit) ? formData.unit : 'custom'}
+                onValueChange={(val) => {
+                  if (val === 'custom') {
+                    setFormData({ ...formData, unit: '' });
+                  } else {
+                    setFormData({ ...formData, unit: val });
+                  }
+                }}
+                disabled={loading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pcs">pcs (Pieces/Count)</SelectItem>
+                  <SelectItem value="kg">kg (Kilograms)</SelectItem>
+                  <SelectItem value="litre">litre (Litres)</SelectItem>
+                  <SelectItem value="g">g (Grams)</SelectItem>
+                  <SelectItem value="ml">ml (Millilitres)</SelectItem>
+                  <SelectItem value="box">box</SelectItem>
+                  <SelectItem value="pack">pack</SelectItem>
+                  <SelectItem value="custom">Custom...</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {!['pcs', 'kg', 'litre', 'g', 'ml', 'box', 'pack'].includes(formData.unit) && (
+                <Input
+                  type="text"
+                  name="unit"
+                  value={formData.unit}
+                  onChange={handleChange}
+                  placeholder="e.g. meter, dozen"
+                  className="mt-2"
+                  required
+                  disabled={loading}
+                />
+              )}
             </div>
 
             <div>
@@ -424,10 +471,11 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
               </label>
               <Input
                 type="number"
+                step="any"
                 name="reorderLevel"
                 value={formData.reorderLevel}
                 onChange={handleChange}
-                placeholder="10"
+                placeholder="10.00"
                 disabled={loading}
               />
             </div>
