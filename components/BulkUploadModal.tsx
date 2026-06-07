@@ -378,7 +378,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
             </div>
 
             {/* Template Download Option */}
-            <div className="bg-slate-50 border border-slate-200/50 rounded-xl p-4.5 flex items-center justify-between">
+            <div className="bg-slate-50 border border-slate-200/50 rounded-xl p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex gap-3">
                 <div className="size-9 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
                   <Download size={16} />
@@ -390,11 +390,18 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                   </p>
                 </div>
               </div>
-              <a href="/product_import_template.csv" download="product_import_template.csv">
-                <Button size="sm" variant="ghost" className="h-8.5 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-bold border border-indigo-100 cursor-pointer rounded-lg gap-1.5">
-                  Download CSV
-                </Button>
-              </a>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <a href="/product_import_template.xlsx" download="product_import_template.xlsx" className="flex-1 sm:flex-none">
+                  <Button size="sm" className="w-full h-8.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer rounded-lg gap-1.5 shadow-xs">
+                    Download Excel
+                  </Button>
+                </a>
+                <a href="/product_import_template.csv" download="product_import_template.csv" className="flex-1 sm:flex-none">
+                  <Button size="sm" variant="outline" className="w-full h-8.5 text-xs text-slate-700 hover:bg-slate-100 border-slate-200 font-bold cursor-pointer rounded-lg gap-1.5">
+                    Download CSV
+                  </Button>
+                </a>
+              </div>
             </div>
           </div>
         )}
