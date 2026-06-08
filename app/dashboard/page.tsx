@@ -150,11 +150,13 @@ export default function DashboardPage() {
     const result = [];
     
     if (period === 'day') {
-      // Build 24 hours
+      // Build 24 UTC hours. We subtract hours from the current UTC epoch so that
+      // the generated keys (e.g. "2026-06-08T07") match exactly what the analytics
+      // server stores (invoice.createdAt.toISOString().slice(0,13)).
+      const nowMs = Date.now();
       for (let i = 23; i >= 0; i--) {
-        const d = new Date();
-        d.setHours(d.getHours() - i);
-        const key = d.toISOString().slice(0, 13);
+        const d = new Date(nowMs - i * 60 * 60 * 1000);
+        const key = d.toISOString().slice(0, 13); // pure UTC hour key
         result.push({
           _id: key,
           label: d.toLocaleTimeString('en-IN', { hour: 'numeric', hour12: true }),

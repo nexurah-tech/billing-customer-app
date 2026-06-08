@@ -146,7 +146,7 @@ export default function QuickBillMultiTabPOS() {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/products', {
+      const response = await fetch('/api/products?limit=1000', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -159,7 +159,7 @@ export default function QuickBillMultiTabPOS() {
   const fetchCustomers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/customers', {
+      const response = await fetch('/api/customers?limit=1000', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -397,6 +397,7 @@ export default function QuickBillMultiTabPOS() {
       }
     } catch (err) {
       console.error(err);
+      alert('Checkout failed: Connection error. Please check your network and try again.');
     } finally {
       setLoading(false);
     }

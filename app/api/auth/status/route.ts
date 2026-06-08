@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       shop = await Shop.findByIdAndUpdate(
         user.shop,
         { lastActiveAt: new Date() },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       if (shop) {

@@ -562,30 +562,15 @@ export default function DashboardLayout({
         </main>
       </div>
 
-      {/* ── Draggable, Resizable Floating Notification Window ── */}
+      {/* ── Fixed Side Notification Popup Card ── */}
       {activeNotification && (
         <div
-          style={{
-            position: 'fixed',
-            left: `${windowPosition.x}px`,
-            top: `${windowPosition.y}px`,
-            width: `${windowSize.width}px`,
-            height: `${windowSize.height}px`,
-            zIndex: 9999,
-          }}
-          className={`flex flex-col bg-slate-950/95 border border-slate-800/80 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-shadow select-none select-text ${
-            dragging ? 'shadow-indigo-500/10 ring-1 ring-indigo-500/20' : ''
-          }`}
+          className="fixed top-20 right-6 w-80 sm:w-[350px] bg-slate-950/95 border border-slate-800/80 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md z-50 flex flex-col animate-in slide-in-from-right-8 fade-in duration-300"
         >
-          {/* Window Drag Header */}
-          <div
-            onMouseDown={startDrag}
-            className={`h-11 px-4.5 bg-slate-900 border-b border-slate-800/60 flex items-center justify-between cursor-move select-none ${
-              dragging ? 'bg-slate-850' : ''
-            }`}
-          >
+          {/* Header */}
+          <div className="h-11 px-4.5 bg-slate-900 border-b border-slate-800/60 flex items-center justify-between select-none">
             <div className="flex items-center gap-2">
-              <GripHorizontal size={14} className="text-slate-500" />
+              <span className="size-2 rounded-full bg-indigo-500 animate-ping" />
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                 System Broadcast
               </span>
@@ -599,8 +584,8 @@ export default function DashboardLayout({
             </button>
           </div>
 
-          {/* Window Content Body */}
-          <div className="flex-1 p-5 overflow-y-auto space-y-4 no-scrollbar">
+          {/* Content Body */}
+          <div className="p-5 space-y-4">
             <div className="space-y-1 select-text">
               <span className={`inline-flex px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider select-none ${
                 activeNotification.type === 'payment'
@@ -628,28 +613,6 @@ export default function DashboardLayout({
                 })}
               </span>
             </div>
-          </div>
-
-          {/* Resize Corner Anchor Handle */}
-          <div
-            onMouseDown={startResize}
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-              width: '14px',
-              height: '14px',
-              cursor: 'se-resize',
-              zIndex: 100,
-            }}
-            className="flex items-end justify-end p-0.5 group"
-            title="Drag to resize window"
-          >
-            {/* Minimal visual resize lines anchor */}
-            <svg width="8" height="8" viewBox="0 0 8 8" className="text-slate-650 group-hover:text-indigo-400 transition-colors">
-              <line x1="6" y1="0" x2="6" y2="6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-              <line x1="0" y1="6" x2="6" y2="6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-            </svg>
           </div>
         </div>
       )}

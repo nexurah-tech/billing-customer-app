@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest) {
     const settings = await Settings.findOneAndUpdate(
       { shop: auth.shopId },
       { $set: update },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     );
 
     if (!settings) return errorResponse('Settings not found', 404);

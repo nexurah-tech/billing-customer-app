@@ -75,6 +75,30 @@ export async function GET(request: NextRequest) {
       },
     ]);
 
+    // Payment Method Breakdown (cash / UPI / card / etc.)
+    const paymentMethodBreakdown = await Invoice.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$paymentMethod',
+          count: { $sum: 1 },
+          total: { $sum: '$total' },
+        },
+      },
+    ]);
+
+    // Day-of-week order distribution (0=Sun … 6=Sat)
+    const dayOfWeekMap: Record<number, { orders: number; revenue: number }> = {};
+    for (let d = 0; d < 7; d++) dayOfWeekMap[d] = { orders: 0, revenue: 0 };
+    for (const inv of invoices) {
+      const dow = new Date(inv.createdAt).getUTCDay();
+      dayOfWeekMap[dow].orders += 1;
+      dayOfWeekMap[dow].revenue += inv.total;
+    }
+    const dayOfWeekDistribution = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
+      (label, i) => ({ label, ...dayOfWeekMap[i] })
+    );
+
     // Top Products (compute with JS for consistency)
     const productTotals: Record<
       string,
@@ -158,6 +182,8 @@ export async function GET(request: NextRequest) {
         activeCustomers: activeCustomers.length,
       },
       paymentStatusBreakdown,
+      paymentMethodBreakdown,
+      dayOfWeekDistribution,
       topProducts,
       revenueTrend,
     });

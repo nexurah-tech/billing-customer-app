@@ -53,7 +53,7 @@ async function generateInvoiceNumber(shopId: string): Promise<string> {
     const updated = await Settings.findOneAndUpdate(
       { shop: shopId },
       { $inc: { invoiceStartNumber: 1 } },
-      { new: true }
+      { returnDocument: 'after' }
     );
     const sequence = updated ? updated.invoiceStartNumber - 1 : settings.invoiceStartNumber;
     return `${settings.invoicePrefix}-${sequence}`;
@@ -128,6 +128,7 @@ export async function POST(request: NextRequest) {
       paymentMethod,
       paymentStatus,
       discountAmount,
+      taxAmount: bodyTaxAmount,
       notes,
     } = body;
 
@@ -153,7 +154,8 @@ export async function POST(request: NextRequest) {
       }));
 
     let subtotal = 0;
-    let taxAmount = 0;
+    // Use the GST tax amount calculated by the frontend (e.g., 18% of subtotal)
+    const taxAmount = typeof bodyTaxAmount === 'number' && bodyTaxAmount >= 0 ? bodyTaxAmount : 0;
     const processedItems = [];
 
     // Calculate totals and validate items
@@ -195,7 +197,7 @@ export async function POST(request: NextRequest) {
       await product.save();
     }
 
-    const total = subtotal - (discountAmount || 0);
+    const total = subtotal + taxAmount - (discountAmount || 0);
 
     let invoiceNumber = await generateInvoiceNumber(auth.shopId);
     let invoice;

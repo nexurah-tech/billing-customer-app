@@ -13,9 +13,39 @@ export async function GET(request: NextRequest) {
       return errorResponse('Unauthorized', 401);
     }
 
-    const categories = await Category.find({ shop: auth.shopId }).sort({
+    let categories = await Category.find({ shop: auth.shopId }).sort({
       createdAt: -1,
     });
+
+    const defaultNames = [
+      'Beverages',
+      'Snacks',
+      'Groceries',
+      'Electronics',
+      'Clothing & Apparel',
+      'Stationery',
+      'Household',
+      'General'
+    ];
+
+    // Check which default categories are missing (case-insensitive)
+    const existingNames = new Set(categories.map(c => c.name.trim().toLowerCase()));
+    const missingNames = defaultNames.filter(name => !existingNames.has(name.toLowerCase()));
+
+    if (missingNames.length > 0) {
+      const seedData = missingNames.map(name => ({
+        name,
+        description: `Default ${name.toLowerCase()} category`,
+        shop: auth.shopId
+      }));
+
+      await Category.insertMany(seedData);
+
+      // Re-fetch category list sorted
+      categories = await Category.find({ shop: auth.shopId }).sort({
+        createdAt: -1,
+      });
+    }
 
     return successResponse({
       categories,
