@@ -379,9 +379,9 @@ export default function QuickBillMultiTabPOS() {
 
   // Bill Calculations
   const grossTotal = activeTab.lineItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
-  const gstAmount = grossTotal * 0.18; // Automatically calculate 18% GST (as requested)
+  const gstAmount = 0; // Inclusive of GST in product price
   
-  const tempTotal = grossTotal + gstAmount - activeTab.discountAmount;
+  const tempTotal = grossTotal - activeTab.discountAmount;
   const total = Math.max(0, Math.round(tempTotal));
   const roundOff = total - tempTotal;
 
@@ -1010,10 +1010,6 @@ export default function QuickBillMultiTabPOS() {
                   <span>Gross Basket Sum</span>
                   <span className="font-semibold text-white">₹{grossTotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Tax (GST 18% Added)</span>
-                  <span className="font-semibold text-white">₹{gstAmount.toFixed(2)}</span>
-                </div>
                 {activeTab.discountAmount > 0 && (
                   <div className="flex justify-between text-red-400 font-extrabold">
                     <span>Cash Bill Discount</span>
@@ -1231,10 +1227,12 @@ export default function QuickBillMultiTabPOS() {
                     <span>Basket Subtotal:</span>
                     <span>₹{(inv.subtotal ?? 0).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-500 font-bold">
-                    <span>Tax (GST 18% Inc):</span>
-                    <span>₹{(inv.taxAmount ?? 0).toFixed(2)}</span>
-                  </div>
+                  {(inv.taxAmount ?? 0) > 0 && (
+                    <div className="flex justify-between text-slate-500 font-bold">
+                      <span>Tax (GST 18% Inc):</span>
+                      <span>₹{(inv.taxAmount ?? 0).toFixed(2)}</span>
+                    </div>
+                  )}
                   {inv.discountAmount > 0 && (
                     <div className="flex justify-between text-red-500 font-black">
                       <span>Cash Discount:</span>
