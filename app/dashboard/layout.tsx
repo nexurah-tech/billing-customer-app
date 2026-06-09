@@ -3,7 +3,18 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
-import { Search, Bell, Clock, Cpu, ShieldCheck, AlertCircle, Info, Sparkles, Check, CheckCircle2, CreditCard, X, GripHorizontal } from 'lucide-react';
+import { Search, Bell, Clock, Cpu, ShieldCheck, AlertCircle, Info, Sparkles, Check, CheckCircle2, CreditCard, X, GripHorizontal, Wifi, WifiOff } from 'lucide-react';
+
+const NAVIGATION_SHORTCUTS = [
+  { label: 'Dashboard Overview', href: '/dashboard', description: 'Overview and sales metrics' },
+  { label: 'Detailed Analytics', href: '/dashboard/analytics', description: 'Detailed sales performance reports' },
+  { label: 'Quick Bill POS', href: '/dashboard/quickbill', description: 'Fast cashier checkout' },
+  { label: 'Billing POS', href: '/dashboard/billing', description: 'Standard billing point-of-sale' },
+  { label: 'Products Catalogue', href: '/dashboard/products', description: 'Manage inventory, categories, and stock' },
+  { label: 'Customers Registry', href: '/dashboard/customers', description: 'View and manage customer profiles' },
+  { label: 'WhatsApp POS Gateway', href: '/dashboard/whatsapp', description: 'WhatsApp notifications integration' },
+  { label: 'Terminal Settings', href: '/dashboard/settings', description: 'Terminal configurations and receipts' },
+];
 
 export default function DashboardLayout({
   children,
@@ -15,7 +26,92 @@ export default function DashboardLayout({
   const [authorized, setAuthorized] = useState(false);
   const [time, setTime] = useState('');
   const [lowStockCount, setLowStockCount] = useState(0);
+  const [networkStatus, setNetworkStatus] = useState<'offline' | 'weak' | 'good' | 'strong'>('strong');
+
+  // Register online/offline event listeners
+  useEffect(() => {
+    const handleOnline = () => {
+      setNetworkStatus('strong');
+    };
+    const handleOffline = () => {
+      setNetworkStatus('offline');
+    };
+
+    if (typeof window !== 'undefined') {
+      if (!navigator.onLine) {
+        setNetworkStatus('offline');
+      }
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
+  // Shortcut search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Filter shortcuts
+  const filteredShortcuts = searchQuery.trim()
+    ? NAVIGATION_SHORTCUTS.filter(s =>
+        s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : NAVIGATION_SHORTCUTS;
+
+  // Global key listener for Ctrl + K
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setShowSearchDropdown(true);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  // Click outside listener for search dropdown
+  useEffect(() => {
+    const handleClickOutsideSearch = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutsideSearch);
+    return () => document.removeEventListener('mousedown', handleClickOutsideSearch);
+  }, []);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSearchSelectedIndex((prev) => (prev + 1) % filteredShortcuts.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSearchSelectedIndex((prev) => (prev - 1 + filteredShortcuts.length) % filteredShortcuts.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filteredShortcuts[searchSelectedIndex]) {
+        router.push(filteredShortcuts[searchSelectedIndex].href);
+        setShowSearchDropdown(false);
+        setSearchQuery('');
+        searchInputRef.current?.blur();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowSearchDropdown(false);
+      searchInputRef.current?.blur();
+    }
+  };
+
   // Real-time status & notifications states
   const [status, setStatus] = useState<'pending' | 'active' | 'blocked' | 'inactive'>('active');
   const [statusChecked, setStatusChecked] = useState(false);
@@ -157,9 +253,25 @@ export default function DashboardLayout({
     const checkUserStatus = async () => {
       try {
         const token = localStorage.getItem('token');
+        const startTime = performance.now();
         const response = await fetch('/api/auth/status', {
           headers: { Authorization: `Bearer ${token}` },
         });
+        const endTime = performance.now();
+        const latency = endTime - startTime;
+
+        if (response.ok) {
+          if (latency < 150) {
+            setNetworkStatus('strong');
+          } else if (latency < 400) {
+            setNetworkStatus('good');
+          } else {
+            setNetworkStatus('weak');
+          }
+        } else {
+          setNetworkStatus('weak');
+        }
+
         const data = await response.json();
         if (data.success) {
           setStatus(data.data.status);
@@ -168,6 +280,7 @@ export default function DashboardLayout({
         }
       } catch (err) {
         console.error('Error checking user status:', err);
+        setNetworkStatus('offline');
       } finally {
         setStatusChecked(true);
       }
@@ -184,6 +297,7 @@ export default function DashboardLayout({
       const token = localStorage.getItem('token');
       if (!token) return;
 
+      const startTime = performance.now();
       const response = await fetch(`/api/notifications?t=${Date.now()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -191,6 +305,21 @@ export default function DashboardLayout({
           'Pragma': 'no-cache',
         },
       });
+      const endTime = performance.now();
+      const latency = endTime - startTime;
+
+      if (response.ok) {
+        if (latency < 150) {
+          setNetworkStatus('strong');
+        } else if (latency < 400) {
+          setNetworkStatus('good');
+        } else {
+          setNetworkStatus('weak');
+        }
+      } else {
+        setNetworkStatus('weak');
+      }
+
       const data = await response.json();
       if (data.success) {
         const fetchedNotifs = data.data.notifications || [];
@@ -217,6 +346,7 @@ export default function DashboardLayout({
       }
     } catch (err) {
       console.error('Error fetching admin notifications:', err);
+      setNetworkStatus('offline');
     } finally {
       isInitialFetchRef.current = false;
     }
@@ -411,14 +541,67 @@ export default function DashboardLayout({
         {/* Top Navbar */}
         <header className="h-16 border-b border-slate-200/80 bg-white/80 backdrop-blur-md px-8 flex items-center justify-between shrink-0 z-30 select-none">
           {/* Quick Search */}
-          <div className="relative w-80 hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 size-4" />
+          <div ref={searchContainerRef} className="relative w-80 hidden sm:block z-50">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 size-4 pointer-events-none" />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search POS terminal shortcuts... (Ctrl + K)"
+              placeholder="Search POS shortcuts... (Ctrl + K)"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSearchSelectedIndex(0);
+                setShowSearchDropdown(true);
+              }}
+              onFocus={() => setShowSearchDropdown(true)}
+              onKeyDown={handleSearchKeyDown}
               className="w-full bg-slate-100/60 border border-slate-200/80 rounded-xl pl-9 pr-4 py-1.5 text-xs placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 transition-colors"
-              disabled
             />
+            {showSearchDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200/85 rounded-2xl shadow-xl z-50 max-h-80 overflow-y-auto divide-y divide-slate-100 animate-in fade-in slide-in-from-top-2 duration-250 select-none">
+                <div className="px-4.5 py-2.5 bg-slate-50 flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  <span>POS Shortcuts</span>
+                  <span className="font-mono text-[9px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-500 lowercase">Esc to close</span>
+                </div>
+                <div className="p-1.5 space-y-0.5">
+                  {filteredShortcuts.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-xs text-slate-400 font-bold">
+                      No matching shortcuts found
+                    </div>
+                  ) : (
+                    filteredShortcuts.map((s, idx) => {
+                      const isSelected = idx === searchSelectedIndex;
+                      return (
+                        <div
+                          key={s.href}
+                          onClick={() => {
+                            router.push(s.href);
+                            setShowSearchDropdown(false);
+                            setSearchQuery('');
+                          }}
+                          onMouseEnter={() => setSearchSelectedIndex(idx)}
+                          className={`px-3.5 py-2 rounded-xl cursor-pointer flex items-center justify-between text-xs transition-colors duration-150 ${
+                            isSelected
+                              ? 'bg-slate-100 text-slate-950 font-bold'
+                              : 'text-slate-650 hover:bg-slate-50/50'
+                          }`}
+                        >
+                          <div className="min-w-0 pr-2">
+                            <p className="font-black text-slate-800">{s.label}</p>
+                            <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">{s.description}</p>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 transition-colors ${
+                            isSelected ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            Open
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Status Actions */}
@@ -429,10 +612,33 @@ export default function DashboardLayout({
               <span>{time || '--:--:-- --'}</span>
             </div>
 
-            {/* System Status */}
-            <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/40 text-xs font-semibold">
-              <ShieldCheck size={14} className="text-emerald-500" />
-              <span className="hidden md:inline">POS Secure</span>
+            {/* WiFi / Network Signal Strength Status */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold select-none transition-all duration-300 ${
+              networkStatus === 'strong'
+                ? 'text-emerald-600 bg-emerald-50 border-emerald-200/40'
+                : networkStatus === 'good'
+                ? 'text-amber-600 bg-amber-50 border-amber-200/40'
+                : networkStatus === 'weak'
+                ? 'text-rose-600 bg-rose-50 border-rose-200/40'
+                : 'text-red-600 bg-red-50 border-red-200/40'
+            }`}>
+              {networkStatus === 'offline' ? (
+                <WifiOff size={14} className="text-red-500 animate-pulse" />
+              ) : (
+                <Wifi size={14} className={
+                  networkStatus === 'strong'
+                    ? 'text-emerald-500'
+                    : networkStatus === 'good'
+                    ? 'text-amber-500'
+                    : 'text-rose-500 animate-pulse'
+                } />
+              )}
+              <span className="hidden md:inline">
+                {networkStatus === 'strong' && 'Signal: Strong'}
+                {networkStatus === 'good' && 'Signal: Good'}
+                {networkStatus === 'weak' && 'Signal: Weak'}
+                {networkStatus === 'offline' && 'Offline'}
+              </span>
             </div>
 
             {/* Real-time Notifications bell & Dropdown */}
