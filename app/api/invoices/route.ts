@@ -157,8 +157,11 @@ export async function POST(request: NextRequest) {
     // Use the GST tax amount calculated by the frontend (e.g., 18% of subtotal)
     const taxAmount = typeof bodyTaxAmount === 'number' && bodyTaxAmount >= 0 ? bodyTaxAmount : 0;
     const processedItems = [];
+    // Defer stock writes until the invoice is confirmed saved, so a failed
+    // invoice can never silently consume inventory.
+    const stockUpdates: { product: any; quantity: number }[] = [];
 
-    // Calculate totals and validate items
+    // Validate items and calculate totals (no writes yet)
     for (const item of items) {
       const product = await Product.findOne({
         _id: item.productId,
@@ -192,19 +195,21 @@ export async function POST(request: NextRequest) {
         subtotal: itemSubtotal,
       });
 
-      // Update product stock
-      product.stock -= item.quantity;
-      await product.save();
+      stockUpdates.push({ product, quantity: item.quantity });
     }
 
     const total = subtotal + taxAmount - (discountAmount || 0);
 
-    let invoiceNumber = await generateInvoiceNumber(auth.shopId);
-    let invoice;
+    // Save the invoice, retrying with a fresh number on a numbering collision.
+    // `invoice` is assigned ONLY after a save resolves — so an exhausted retry
+    // loop leaves it null and we return a real error instead of a fake 201.
+    let invoice = null;
+    let lastError: any = null;
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const invoiceNumber = await generateInvoiceNumber(auth.shopId);
       try {
-        invoice = new Invoice({
+        const candidate = new Invoice({
           invoiceNumber,
           customer: customerId,
           items: processedItems,
@@ -218,21 +223,19 @@ export async function POST(request: NextRequest) {
           shop: auth.shopId,
         });
 
-        await invoice.save();
+        await candidate.save();
+        invoice = candidate;
         break;
       } catch (error: any) {
-        if (
-          error?.code === 11000 &&
-          error.message?.includes('invoiceNumber') &&
-          attempt < 4
-        ) {
-          // Re-sync counter from actual DB state before retrying
+        lastError = error;
+        if (error?.code === 11000) {
+          // Invoice-number collision — re-sync the counter to this shop's
+          // actual max and let the next iteration generate a fresh number.
           const actualNext = await getNextInvoiceSequence(auth.shopId);
           await Settings.findOneAndUpdate(
             { shop: auth.shopId },
             { $max: { invoiceStartNumber: actualNext } }
           );
-          invoiceNumber = await generateInvoiceNumber(auth.shopId);
           continue;
         }
         throw error;
@@ -240,7 +243,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!invoice) {
-      return errorResponse('Failed to create invoice after retrying', 500);
+      console.error('Create invoice failed after retries:', lastError);
+      return errorResponse('Failed to create invoice. Please try again.', 500);
+    }
+
+    // Invoice is persisted — now it is safe to decrement stock.
+    for (const { product, quantity } of stockUpdates) {
+      product.stock -= quantity;
+      await product.save();
     }
 
     await invoice.populate('customer');

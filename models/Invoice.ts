@@ -57,7 +57,6 @@ const invoiceSchema = new Schema<IInvoice>(
     invoiceNumber: {
       type: String,
       required: true,
-      unique: true,
     },
     customer: {
       type: Schema.Types.ObjectId,
@@ -113,7 +112,10 @@ const invoiceSchema = new Schema<IInvoice>(
 // Index for faster queries
 invoiceSchema.index({ shop: 1, createdAt: -1 });
 invoiceSchema.index({ customer: 1, shop: 1 });
-invoiceSchema.index({ invoiceNumber: 1 });
+// Invoice numbers are unique PER SHOP, not globally — each shop has its own
+// sequence (INV-1000, INV-1001, ...). A global unique index would make one
+// shop's number collide with another shop's identical number.
+invoiceSchema.index({ shop: 1, invoiceNumber: 1 }, { unique: true });
 
 export default mongoose.models.Invoice ||
   mongoose.model<IInvoice>('Invoice', invoiceSchema);
