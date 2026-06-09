@@ -13,6 +13,7 @@
   "build": {
     "appId": "com.nexurah.nexbilling",
     "productName": "NexBilling",
+    "icon": "public/logo.ico",
     "directories": {
       "output": "dist"
     },
