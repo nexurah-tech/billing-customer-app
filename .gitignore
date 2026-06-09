@@ -18,3 +18,7 @@ node_modules
 # Electron build output (binary artifacts — do not commit)
 dist/
 out/
+
+# pnpm artifacts (project uses npm)
+pnpm-lock.yaml
+pnpm-workspace.yaml
