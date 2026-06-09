@@ -17,6 +17,7 @@ import {
   LineChart,
   PanelLeftClose,
   PanelLeftOpen,
+  HelpCircle,
 } from 'lucide-react';
 
 const primaryNav = [
@@ -30,6 +31,7 @@ const primaryNav = [
 
 const secondaryNav = [
   // { label: 'WhatsApp POS', href: '/dashboard/whatsapp', icon: MessageCircle },
+  { label: 'Help & Support', href: '/dashboard/support', icon: HelpCircle },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 

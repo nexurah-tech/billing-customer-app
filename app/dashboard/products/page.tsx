@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import {
   Plus, Edit, Trash2, AlertCircle, Search, Package,
   Tag, IndianRupee, Layers, ShieldAlert, CheckCircle2, Upload,
-  ChevronLeft, ChevronRight, Sparkles
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { toast } from 'sonner';
@@ -33,36 +33,10 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     fetchProducts();
   }, [search, currentPage]);
-
-  const handleSeedProducts = async () => {
-    if (seeding) return;
-    setSeeding(true);
-    const toastId = toast.loading('Seeding default retail catalog...');
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/products/seed', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success(data.data.message || 'Catalog seeded successfully!', { id: toastId });
-        fetchProducts();
-      } else {
-        toast.error(data.error || 'Failed to seed sample catalog', { id: toastId });
-      }
-    } catch (err) {
-      console.error('Seeding products failed:', err);
-      toast.error('Network error seeding catalog', { id: toastId });
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   const fetchProducts = async () => {
     try {
@@ -117,14 +91,6 @@ export default function ProductsPage() {
 
         <div className="flex gap-2 flex-wrap">
           <Button 
-            onClick={handleSeedProducts}
-            disabled={seeding}
-            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl h-10 px-4 font-bold text-xs gap-1.5 shadow-2xs cursor-pointer transition-all disabled:opacity-50 flex items-center"
-          >
-            <Sparkles size={14} className={seeding ? "animate-spin" : ""} />
-            {seeding ? "Seeding..." : "Seed Sample Catalog"}
-          </Button>
-          <Button 
             onClick={() => setIsBulkModalOpen(true)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 px-5 font-bold text-xs gap-2 shadow-sm cursor-pointer transition-all flex items-center"
           >
@@ -173,14 +139,6 @@ export default function ProductsPage() {
           <p className="text-slate-700 font-bold text-sm">No products in catalogue</p>
           <p className="text-xs text-slate-400 mt-1 mb-6">Register a product, upload a spreadsheet, or populate sample inventory to start</p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button 
-              onClick={handleSeedProducts}
-              disabled={seeding}
-              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold rounded-xl text-xs px-5 h-9 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-            >
-              <Sparkles size={13} className={seeding ? "animate-spin" : ""} />
-              {seeding ? "Seeding..." : "Seed Sample Catalog"}
-            </Button>
             <Button 
               onClick={() => setIsBulkModalOpen(true)}
               className="bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl text-xs px-5 h-9 cursor-pointer flex items-center gap-1.5"
