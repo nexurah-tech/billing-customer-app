@@ -99,6 +99,12 @@ export default function QuickBillMultiTabPOS() {
   // Catalog search input query
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
+
+  // Reset index when search query changes
+  useEffect(() => {
+    setSearchSelectedIndex(0);
+  }, [searchQuery]);
 
   // Multi-Tab state - Initialize with exactly ONE tab at startup
   const [tabs, setTabs] = useState<BillingTab[]>([
@@ -142,6 +148,53 @@ export default function QuickBillMultiTabPOS() {
       if (clockIntervalRef.current) clearInterval(clockIntervalRef.current);
     };
   }, []);
+
+  // Global POS Hotkeys (Alt + N / F4 to add new tab, Alt + [1-9] to switch active tab)
+  useEffect(() => {
+    const handleGlobalHotkeys = (e: KeyboardEvent) => {
+      // Trigger Alt + N / F4 anywhere (even inside input fields, to allow cashier speed)
+      if ((e.altKey && e.key.toLowerCase() === 'n') || e.key === 'F4') {
+        e.preventDefault();
+        addNewTab();
+      }
+
+      // Switch tabs: Alt + 1, Alt + 2... (always allowed)
+      if (e.altKey && /^[1-9]$/.test(e.key)) {
+        const index = parseInt(e.key) - 1;
+        if (tabs[index]) {
+          e.preventDefault();
+          setActiveTabId(tabs[index].id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalHotkeys);
+    return () => window.removeEventListener('keydown', handleGlobalHotkeys);
+  }, [tabs]);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSearchDropdown || searchedProducts.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSearchSelectedIndex((prev) => (prev + 1) % searchedProducts.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSearchSelectedIndex((prev) => (prev - 1 + searchedProducts.length) % searchedProducts.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const selectedProduct = searchedProducts[searchSelectedIndex];
+      if (selectedProduct) {
+        addProductToActiveCart(selectedProduct);
+        setSearchQuery('');
+        setShowSearchDropdown(false);
+        if (barcodeInputRef.current) barcodeInputRef.current.focus();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowSearchDropdown(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -494,10 +547,14 @@ export default function QuickBillMultiTabPOS() {
           type="button"
           onClick={addNewTab}
           variant="outline"
-          className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-slate-200 font-extrabold gap-1.5 px-4 py-2.5 h-9.5 rounded-xl cursor-pointer shadow-sm shrink-0 transition-transform active:scale-95"
+          className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-slate-200 font-extrabold gap-1.5 px-4 py-2.5 h-9.5 rounded-xl cursor-pointer shadow-sm shrink-0 transition-transform active:scale-95 flex items-center"
+          title="Shortcut: Alt + N or F4"
         >
           <Plus size={13} strokeWidth={2.5} />
           Hold New Cart
+          <span className="hidden md:inline-block ml-1.5 text-[8.5px] text-slate-400 font-mono font-bold bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs">
+            Alt + N
+          </span>
         </Button>
       </div>
 
@@ -523,6 +580,7 @@ export default function QuickBillMultiTabPOS() {
                     setShowSearchDropdown(e.target.value.trim().length > 0);
                   }}
                   onFocus={() => setShowSearchDropdown(searchQuery.trim().length > 0)}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Scan product code or type name (e.g. Rice, Dal)..."
                   className="w-full bg-slate-50 border border-slate-200/60 focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 rounded-xl pl-10 pr-24 py-3.5 text-xs placeholder:text-slate-400 focus:outline-none transition-all font-semibold text-slate-800"
                 />
@@ -551,7 +609,8 @@ export default function QuickBillMultiTabPOS() {
             {/* Absolute overlay product results autocomplete list */}
             {showSearchDropdown && searchedProducts.length > 0 && (
               <div className="absolute top-20 inset-x-4 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-52 overflow-y-auto z-50 divide-y divide-slate-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                {searchedProducts.map((prod) => {
+                {searchedProducts.map((prod, idx) => {
+                  const isSelected = idx === searchSelectedIndex;
                   const isLowStock = prod.stock > 0 && prod.stock <= 5;
                   const isOutOfStock = prod.stock <= 0;
                   return (
@@ -563,20 +622,31 @@ export default function QuickBillMultiTabPOS() {
                         setShowSearchDropdown(false);
                         if (barcodeInputRef.current) barcodeInputRef.current.focus();
                       }}
-                      className="px-4 py-3 hover:bg-slate-50/50 cursor-pointer flex items-center justify-between text-xs transition-colors group"
+                      onMouseEnter={() => setSearchSelectedIndex(idx)}
+                      className={`px-4 py-3 cursor-pointer flex items-center justify-between text-xs transition-colors group ${
+                        isSelected ? 'bg-indigo-50/70 font-bold' : 'hover:bg-slate-50/50'
+                      }`}
                     >
                       <div className="space-y-1">
-                        <p className="font-extrabold text-slate-800 group-hover:text-indigo-600 transition-colors">{prod.name}</p>
+                        <p className={`font-extrabold transition-colors ${
+                          isSelected ? 'text-indigo-700' : 'text-slate-800 group-hover:text-indigo-600'
+                        }`}>{prod.name}</p>
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] text-indigo-500 font-mono font-bold bg-indigo-50 px-1.5 py-0.25 rounded">{prod.sku}</span>
-                          <span className="text-[9.5px] text-slate-400 capitalize">{prod.category && typeof prod.category === 'object' ? prod.category.name : (prod.category || 'Store')}</span>
+                          <span className={`text-[9px] font-mono font-bold px-1.5 py-0.25 rounded ${
+                            isSelected ? 'bg-indigo-100 text-indigo-700' : 'bg-indigo-50 text-indigo-500'
+                          }`}>{prod.sku}</span>
+                          <span className={`text-[9.5px] capitalize ${isSelected ? 'text-indigo-600/70' : 'text-slate-400'}`}>
+                            {prod.category && typeof prod.category === 'object' ? prod.category.name : (prod.category || 'Store')}
+                          </span>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-black text-slate-950">₹{prod.unitPrice.toFixed(2)}</p>
+                        <p className={`font-black ${isSelected ? 'text-indigo-950' : 'text-slate-955'}`}>₹{prod.unitPrice.toFixed(2)}</p>
                         <p className="text-[9.5px] mt-0.5 font-bold flex items-center gap-1 justify-end">
                           <span className={`size-1.5 rounded-full ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                          <span className="text-slate-400 capitalize">{isOutOfStock ? 'Out of Stock' : `Stock: ${prod.stock}`}</span>
+                          <span className={`${isSelected ? 'text-indigo-600/70' : 'text-slate-400'} capitalize`}>
+                            {isOutOfStock ? 'Out of Stock' : `Stock: ${prod.stock}`}
+                          </span>
                         </p>
                       </div>
                     </div>
