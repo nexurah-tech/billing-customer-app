@@ -27,6 +27,21 @@ export default function DashboardLayout({
   const [time, setTime] = useState('');
   const [lowStockCount, setLowStockCount] = useState(0);
   const [networkStatus, setNetworkStatus] = useState<'offline' | 'weak' | 'good' | 'strong'>('strong');
+  const [dismissedOffline, setDismissedOffline] = useState(false);
+  const [dontShowAgainState, setDontShowAgainState] = useState(false);
+  const [noOfflinePopup, setNoOfflinePopup] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setNoOfflinePopup(localStorage.getItem('noOfflinePopup') === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (networkStatus !== 'offline') {
+      setDismissedOffline(false);
+    }
+  }, [networkStatus]);
 
   // Register online/offline event listeners
   useEffect(() => {
@@ -818,6 +833,75 @@ export default function DashboardLayout({
                   day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
                 })}
               </span>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── Offline Connectivity Warning Modal ── */}
+      {networkStatus === 'offline' && !dismissedOffline && !noOfflinePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4 print:hidden select-none animate-in fade-in duration-200">
+          <div className="w-full max-w-md p-8 bg-white border border-slate-200/80 rounded-3xl shadow-2xl flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 duration-300">
+            <div className="size-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs animate-bounce">
+              <WifiOff size={32} strokeWidth={2} />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Connection Offline</h2>
+              <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                NexBill detected that your terminal is currently disconnected from the internet. Transactions, invoices, and live inventory sync are temporarily paused. You can continue creating bills in offline mode, and they will sync once the connection is restored.
+              </p>
+            </div>
+
+            <div className="w-full flex items-center gap-2 pl-1 select-none">
+              <input
+                id="dontShowAgain"
+                type="checkbox"
+                checked={dontShowAgainState}
+                onChange={(e) => setDontShowAgainState(e.target.checked)}
+                className="size-4 rounded border-slate-350 text-indigo-650 focus:ring-indigo-500 cursor-pointer"
+              />
+              <label htmlFor="dontShowAgain" className="text-xs text-slate-500 font-bold cursor-pointer select-none">
+                Don't show this alert again
+              </label>
+            </div>
+
+            <div className="w-full flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  if (dontShowAgainState) {
+                    localStorage.setItem('noOfflinePopup', 'true');
+                    setNoOfflinePopup(true);
+                  }
+                  setDismissedOffline(true);
+                }}
+                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl transition-all border border-slate-200 cursor-pointer flex-1"
+              >
+                Dismiss & Continue
+              </button>
+              <button
+                onClick={async () => {
+                  // Trigger immediate recheck
+                  try {
+                    const token = localStorage.getItem('token');
+                    const startTime = performance.now();
+                    const response = await fetch('/api/auth/status', {
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    const endTime = performance.now();
+                    const latency = endTime - startTime;
+                    if (response.ok) {
+                      if (latency < 150) setNetworkStatus('strong');
+                      else if (latency < 400) setNetworkStatus('good');
+                      else setNetworkStatus('weak');
+                    }
+                  } catch {
+                    // Still offline
+                  }
+                }}
+                className="px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-98 cursor-pointer flex-1"
+              >
+                Check Connection
+              </button>
             </div>
           </div>
         </div>

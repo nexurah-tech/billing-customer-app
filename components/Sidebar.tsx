@@ -23,13 +23,13 @@ const primaryNav = [
   { label: 'Dashboard', href: '/dashboard', icon: BarChart3 },
   { label: 'Detailed Analytics', href: '/dashboard/analytics', icon: LineChart },
   { label: 'Quick Bill POS', href: '/dashboard/quickbill', icon: Zap },
-  { label: 'Billing POS', href: '/dashboard/billing', icon: ShoppingCart },
+  // { label: 'Billing POS', href: '/dashboard/billing', icon: ShoppingCart },
   { label: 'Products Catalogue', href: '/dashboard/products', icon: Package },
   { label: 'Customers Registry', href: '/dashboard/customers', icon: Users },
 ];
 
 const secondaryNav = [
-  { label: 'WhatsApp POS', href: '/dashboard/whatsapp', icon: MessageCircle },
+  // { label: 'WhatsApp POS', href: '/dashboard/whatsapp', icon: MessageCircle },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 

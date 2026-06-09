@@ -132,6 +132,7 @@ export default function QuickBillMultiTabPOS() {
   // Dynamic Clock
   const [currentTime, setCurrentTime] = useState('');
   const clockIntervalRef = useRef<any>(null);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -144,8 +145,22 @@ export default function QuickBillMultiTabPOS() {
       setCurrentTime(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
     }, 1000);
 
+    let handleOnline: () => void;
+    let handleOffline: () => void;
+    if (typeof window !== 'undefined') {
+      setIsOffline(!navigator.onLine);
+      handleOnline = () => setIsOffline(false);
+      handleOffline = () => setIsOffline(true);
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+    }
+
     return () => {
       if (clockIntervalRef.current) clearInterval(clockIntervalRef.current);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      }
     };
   }, []);
 
@@ -494,10 +509,17 @@ export default function QuickBillMultiTabPOS() {
         </div>
 
         <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200/40 shrink-0">
-          <span className="text-[10px] text-slate-700 px-3 py-1 rounded-lg bg-white shadow-sm font-extrabold flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-emerald-500 shrink-0 animate-ping" />
-            ONLINE SYNC ENABLED
-          </span>
+          {isOffline ? (
+            <span className="text-[10px] text-rose-700 px-3 py-1 rounded-lg bg-rose-50 shadow-sm font-extrabold flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-rose-500 shrink-0 animate-pulse" />
+              OFFLINE MODE (SYNC PAUSED)
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-700 px-3 py-1 rounded-lg bg-white shadow-sm font-extrabold flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-emerald-500 shrink-0 animate-ping" />
+              ONLINE SYNC ENABLED
+            </span>
+          )}
         </div>
       </div>
 
