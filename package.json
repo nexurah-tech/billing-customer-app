@@ -1,6 +1,8 @@
 {
   "name": "nexbill-app",
   "version": "0.1.0",
+  "description": "NexBilling - Billing system for retailers",
+  "author": "Nexurah",
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
@@ -8,7 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "electron:dev": "electron .",
-    "electron:build": "npm run build && electron-builder"
+    "electron:build": "cross-env ELECTRON_BUILD=true next build && electron-builder"
   },
   "build": {
     "appId": "com.nexurah.nexbilling",
@@ -18,33 +20,39 @@
       "output": "dist"
     },
     "files": [
-      "app/**/*",
-      "components/**/*",
-      "hooks/**/*",
-      "lib/**/*",
-      "models/**/*",
-      "public/**/*",
-      "styles/**/*",
       "electron/**/*",
-      ".env",
-      "next.config.mjs",
-      "tsconfig.json",
-      "package.json",
-      "node_modules/**/*",
-      ".next/**/*",
-      "!.next/node_modules/**/*",
-      "!.next/cache/**/*",
-      "!node_modules/electron/**/*",
-      "!node_modules/electron-builder/**/*",
-      "!dist/**/*",
-      "!.git/**/*"
+      "public/**/*",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "package.json"
     ],
-    "asar": false,
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "app"
+      },
+      {
+        "from": ".next/static",
+        "to": "app/.next/static"
+      },
+      {
+        "from": "public",
+        "to": "app/public"
+      }
+    ],
+    "asar": true,
     "win": {
-      "target": "zip",
+      "target": "nsis",
       "signtoolOptions": {
         "sign": null
       }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NexBilling"
     }
   },
   "dependencies": {
@@ -117,6 +125,7 @@
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "electron": "^42.3.3",
     "electron-builder": "^26.15.2",
     "postcss": "^8.5",
