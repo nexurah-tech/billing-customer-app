@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Printer, ArrowLeft, FileText, Calendar, User, ShoppingBag, CreditCard, Receipt, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
+import apiFetch from '@/lib/apiClient';
 
 interface Invoice {
   _id: string;
@@ -63,7 +64,7 @@ export default function InvoiceDetailPage({
   const fetchInvoice = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/invoices/${id}`, {
+      const response = await apiFetch(`/api/invoices/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
