@@ -38,6 +38,7 @@ import {
   Sparkles,
   ArrowUpRight,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface AnalyticsData {
   summary: {
@@ -108,7 +109,7 @@ export default function DetailedAnalyticsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/analytics?startDate=${sd}&endDate=${ed}`, {
+      const res = await apiFetch(`/api/analytics?startDate=${sd}&endDate=${ed}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 401 || res.status === 403) {

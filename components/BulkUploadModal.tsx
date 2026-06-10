@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef } from 'react';
 import {
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/apiClient';
 
 interface ParsedProduct {
   name: string;
@@ -282,7 +283,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
       }
 
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/products/bulk', {
+      const response = await apiFetch('/api/products/bulk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

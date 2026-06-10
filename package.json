@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "electron:dev": "electron .",
-    "electron:build": "cross-env ELECTRON_BUILD=true next build && electron-builder"
+    "electron:build": "cross-env ELECTRON_BUILD=true next build && node scripts/prepare-standalone.mjs && electron-builder"
   },
   "build": {
     "appId": "com.nexurah.nexbilling",
@@ -22,8 +22,6 @@
     "files": [
       "electron/**/*",
       "public/**/*",
-      ".next/standalone/**/*",
-      ".next/static/**/*",
       "package.json"
     ],
     "extraResources": [

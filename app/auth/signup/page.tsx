@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   Check,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 // ─── Password strength checker ────────────────────────────────────────────────
 function getPasswordChecks(password: string) {
@@ -117,7 +118,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await apiFetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

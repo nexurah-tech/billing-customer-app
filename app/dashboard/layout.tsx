@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { Search, Bell, Clock, Cpu, ShieldCheck, AlertCircle, Info, Sparkles, Check, CheckCircle2, CreditCard, X, GripHorizontal, Wifi, WifiOff } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 const NAVIGATION_SHORTCUTS = [
   { label: 'Dashboard Overview', href: '/dashboard', description: 'Overview and sales metrics' },
@@ -240,7 +241,7 @@ export default function DashboardLayout({
     const fetchLowStockCount = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/products', {
+        const response = await apiFetch('/api/products', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
@@ -269,7 +270,7 @@ export default function DashboardLayout({
       try {
         const token = localStorage.getItem('token');
         const startTime = performance.now();
-        const response = await fetch('/api/auth/status', {
+        const response = await apiFetch('/api/auth/status', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const endTime = performance.now();
@@ -313,7 +314,7 @@ export default function DashboardLayout({
       if (!token) return;
 
       const startTime = performance.now();
-      const response = await fetch(`/api/notifications?t=${Date.now()}`, {
+      const response = await apiFetch(`/api/notifications?t=${Date.now()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Cache-Control': 'no-cache',
@@ -379,7 +380,7 @@ export default function DashboardLayout({
   const markAsRead = async (notificationId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/notifications', {
+      const response = await apiFetch('/api/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -403,7 +404,7 @@ export default function DashboardLayout({
   const markAllAsRead = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/notifications', {
+      const response = await apiFetch('/api/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -884,7 +885,7 @@ export default function DashboardLayout({
                   try {
                     const token = localStorage.getItem('token');
                     const startTime = performance.now();
-                    const response = await fetch('/api/auth/status', {
+                    const response = await apiFetch('/api/auth/status', {
                       headers: { Authorization: `Bearer ${token}` },
                     });
                     const endTime = performance.now();

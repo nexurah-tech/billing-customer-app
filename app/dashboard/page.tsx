@@ -28,6 +28,7 @@ import {
   Trophy,
   Medal,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface AnalyticsData {
   summary: {
@@ -60,7 +61,7 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/analytics?period=${period}`, {
+        const response = await apiFetch(`/api/analytics?period=${period}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

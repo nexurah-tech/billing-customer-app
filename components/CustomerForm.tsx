@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { apiFetch } from '@/lib/apiClient';
 
 export function CustomerForm({
   onSuccess,
@@ -42,7 +43,7 @@ export function CustomerForm({
   const fetchCustomerDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/customers/${customerId}`, {
+      const response = await apiFetch(`/api/customers/${customerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();

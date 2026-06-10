@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Category {
   _id: string;
@@ -56,7 +57,7 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/categories', {
+      const response = await apiFetch('/api/categories', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -72,7 +73,7 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
   const fetchProductDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await apiFetch(`/api/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -116,7 +117,7 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
       const uploadData = new FormData();
       uploadData.append('file', file);
 
-      const response = await fetch('/api/upload', {
+      const response = await apiFetch('/api/upload', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -172,7 +173,7 @@ export function ProductForm({ onSuccess, productId }: { onSuccess: () => void; p
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/categories', {
+      const response = await apiFetch('/api/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

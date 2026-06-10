@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Product {
   _id: string;
@@ -62,7 +63,7 @@ export default function ProductsPage() {
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`/api/products/${id}`, {
+      await apiFetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

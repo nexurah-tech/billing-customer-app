@@ -34,6 +34,7 @@ import {
   Receipt,
   Phone,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Product {
   _id: string;
@@ -129,7 +130,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
   const fetchCustomers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/customers', {
+      const response = await apiFetch('/api/customers', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -144,7 +145,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/products', {
+      const response = await apiFetch('/api/products', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -159,7 +160,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/categories', {
+      const response = await apiFetch('/api/categories', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -243,7 +244,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
     setCustomerModalLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/customers', {
+      const response = await apiFetch('/api/customers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,7 +302,7 @@ export function BillingForm({ onSuccess }: { onSuccess: () => void }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/invoices', {
+      const response = await apiFetch('/api/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

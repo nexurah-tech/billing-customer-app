@@ -8,6 +8,7 @@ import {
   Cpu, FileSpreadsheet, Percent, Bell, Info,
   Save, CheckCircle2, Loader2, Lock, CreditCard, Calendar, X, AlertTriangle
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface ShopForm {
   name: string;
@@ -55,7 +56,7 @@ export default function SettingsPage() {
   const loadSubscription = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/shop/subscription', {
+      const res = await apiFetch('/api/shop/subscription', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -72,7 +73,7 @@ export default function SettingsPage() {
   const loadShop = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/shop', {
+      const res = await apiFetch('/api/shop', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -121,7 +122,7 @@ export default function SettingsPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/settings', {
+      const res = await apiFetch('/api/settings', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -167,7 +168,7 @@ export default function SettingsPage() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/shop', {
+      const res = await apiFetch('/api/shop', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

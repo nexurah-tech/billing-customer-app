@@ -10,6 +10,7 @@ import {
   Star, Building, X, Receipt, ExternalLink, ShoppingBag,
   Calendar, Banknote, TrendingUp, UserCircle2, ChevronRight,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Customer {
   _id: string;
@@ -60,7 +61,7 @@ export default function CustomersPage() {
     setInvoicesLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/invoices?customerId=${customer._id}&limit=50`, {
+      const res = await apiFetch(`/api/invoices?customerId=${customer._id}&limit=50`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -78,7 +79,7 @@ export default function CustomersPage() {
     if (!confirm('Delete this customer?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`/api/customers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      await apiFetch(`/api/customers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setCustomers(customers.filter((c) => c._id !== id));
       if (activeCustomer?._id === id) closeHistory();
     } catch (err) { console.error('Error deleting customer:', err); }

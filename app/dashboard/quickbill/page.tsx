@@ -30,6 +30,7 @@ import {
   Clock,
   Laptop,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Product {
   _id: string;
@@ -214,7 +215,7 @@ export default function QuickBillMultiTabPOS() {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/products?limit=1000', {
+      const response = await apiFetch('/api/products?limit=1000', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -227,7 +228,7 @@ export default function QuickBillMultiTabPOS() {
   const fetchCustomers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/customers?limit=1000', {
+      const response = await apiFetch('/api/customers?limit=1000', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -369,7 +370,7 @@ export default function QuickBillMultiTabPOS() {
     setCustomerModalLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/customers', {
+      const response = await apiFetch('/api/customers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +438,7 @@ export default function QuickBillMultiTabPOS() {
         return;
       }
 
-      const response = await fetch('/api/invoices', {
+      const response = await apiFetch('/api/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

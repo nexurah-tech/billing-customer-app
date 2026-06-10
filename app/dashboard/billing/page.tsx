@@ -10,6 +10,7 @@ import {
   Clock, CreditCard, QrCode, ChevronLeft, ChevronRight,
   UserCircle2,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface Invoice {
   _id: string;
@@ -33,7 +34,7 @@ export default function BillingPage() {
   const fetchInvoices = async (pageNumber: number) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/invoices?page=${pageNumber}&limit=${pageSize}`, {
+      const response = await apiFetch(`/api/invoices?page=${pageNumber}&limit=${pageSize}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
