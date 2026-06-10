@@ -11,7 +11,7 @@
  *   3. Is NOT yet present in .next/standalone/node_modules/
  */
 
-import { cpSync, existsSync, mkdirSync, readFileSync } from 'fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -56,9 +56,19 @@ for (const name of packages) {
     continue
   }
 
+  const isCritical = critical.includes(name)
   if (existsSync(dest)) {
-    skipped++
-    continue   // already copied by file tracing — don't overwrite
+    if (isCritical) {
+      console.log(`  ! force-overwriting critical package: ${name}`)
+      try {
+        rmSync(dest, { recursive: true, force: true })
+      } catch (e) {
+        console.warn(`  ✗ failed to remove old critical package: ${name} — ${e.message}`)
+      }
+    } else {
+      skipped++
+      continue   // already copied by file tracing — don't overwrite
+    }
   }
 
   try {
@@ -70,6 +80,20 @@ for (const name of packages) {
   } catch (e) {
     console.warn(`  ✗ failed: ${name} — ${e.message}`)
   }
+}
+
+// Copy .env.local (or .env) to .next/standalone/.env
+const envSrc = existsSync(join(root, '.env.local')) ? join(root, '.env.local') : join(root, '.env')
+const envDest = join(root, '.next', 'standalone', '.env')
+if (existsSync(envSrc)) {
+  try {
+    cpSync(envSrc, envDest, { force: true })
+    console.log(`\n  ✓ env file copied from ${envSrc} to ${envDest}`)
+  } catch (e) {
+    console.warn(`\n  ✗ failed to copy env file: ${e.message}`)
+  }
+} else {
+  console.log('\n  ! no .env.local or .env file found to bundle')
 }
 
 console.log(`\nStandalone node_modules prepared:`)
