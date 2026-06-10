@@ -23,7 +23,8 @@
     "files": [
       "electron/**/*",
       "public/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/**/*"
     ],
     "extraResources": [
       {
@@ -39,6 +40,7 @@
         "to": "app/public"
       }
     ],
+    "npmRebuild": false,
     "asar": true,
     "win": {
       "target": "nsis",
@@ -51,7 +53,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "NexBilling"
+      "shortcutName": "NexBilling",
+      "runAfterFinish": false
     }
   },
   "dependencies": {

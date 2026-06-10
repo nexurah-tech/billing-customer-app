@@ -24,11 +24,19 @@ const projectModules    = join(root, 'node_modules')
 // Ensure the target directory exists
 mkdirSync(standaloneModules, { recursive: true })
 
-// Read all declared deps (prod + dev — we want next, electron-related, etc.)
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
-const allDeps = Object.keys({
-  ...(pkg.dependencies   || {}),
-  ...(pkg.devDependencies || {}),
+const excludeList = [
+  '@radix-ui/',
+  'lucide-react',
+  'recharts',
+  'embla-carousel-react',
+  'vaul',
+  'sonner',
+  'autoprefixer',
+  'tailwindcss',
+]
+const allDeps = Object.keys(pkg.dependencies || {}).filter(name => {
+  return !excludeList.some(exclude => name.startsWith(exclude) || name.includes(exclude))
 })
 
 // These are always required to run the standalone Next.js server,

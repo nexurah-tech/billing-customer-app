@@ -1,7 +1,7 @@
 const { app, BrowserWindow, shell, Menu, dialog } = require('electron')
 const path = require('path')
 const fs = require('fs')
-const { spawn } = require('child_process')
+const { spawn, execSync } = require('child_process')
 const http = require('http')
 
 let mainWindow
@@ -173,6 +173,19 @@ function startNextServer() {
     }
 
     // ── PRODUCTION ──────────────────────────────────────────────────────────
+    // In production, kill any orphaned Next.js server processes bound to our port.
+    // This is especially important when the app is launched elevated by the installer
+    // while a previous non-elevated instance is still running in the background.
+    try {
+      if (process.platform === 'win32') {
+        const cmd = `cmd /c "for /f \\"tokens=5\\" %a in ('netstat -aon ^| findstr :${PORT}') do taskkill /F /PID %a"`;
+        execSync(cmd, { stdio: 'ignore' });
+        console.log(`Cleared existing process listening on port ${PORT}`);
+      }
+    } catch (e) {
+      // Ignore errors if port is not in use or taskkill fails
+    }
+
     const serverPath   = path.join(process.resourcesPath, 'app', 'server.js')
     const resourcesDir = path.join(process.resourcesPath, 'app')
 
