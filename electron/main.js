@@ -152,7 +152,7 @@ function startNextServer() {
 
     // ── DEV ─────────────────────────────────────────────────────────────────
     if (isDev) {
-      http.get('http://localhost:3000', (res) => {
+      http.get('http://127.0.0.1:3000', (res) => {
         console.log('Next.js dev server already running on :3000')
         res.resume()
         resolve(3000)
@@ -167,7 +167,7 @@ function startNextServer() {
         nextServer.stdout.on('data', d => console.log('[Next.js Dev]', d.toString()))
         nextServer.stderr.on('data', d => console.error('[Next.js Dev err]', d.toString()))
         nextServer.on('error', reject)
-        waitForServer('http://localhost:3000').then(() => resolve(3000)).catch(reject)
+        waitForServer('http://127.0.0.1:3000').then(() => resolve(3000)).catch(reject)
       })
       return
     }
@@ -193,6 +193,7 @@ function startNextServer() {
       ...bundledEnv,          // bundled credentials first (Atlas URI, JWT_SECRET, etc.)
       ...process.env,         // system env can override
       PORT:      String(PORT),
+      HOSTNAME:  '127.0.0.1',
       NODE_ENV:  'production',
       // Help Node resolve modules from the standalone bundle's node_modules
       NODE_PATH: path.join(resourcesDir, 'node_modules'),
@@ -233,7 +234,7 @@ function startNextServer() {
       }
     })
 
-    waitForServer(`http://localhost:${PORT}`)
+    waitForServer(`http://127.0.0.1:${PORT}`)
       .then(() => resolve(PORT))
       .catch(rejectOnce)
   })
@@ -258,14 +259,14 @@ function createWindow(port) {
 
   Menu.setApplicationMenu(null)
 
-  mainWindow.loadURL(`http://localhost:${port}`)
+  mainWindow.loadURL(`http://127.0.0.1:${port}`)
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(`http://localhost:${port}`)) return { action: 'allow' }
+    if (url.startsWith(`http://127.0.0.1:${port}`)) return { action: 'allow' }
     shell.openExternal(url)
     return { action: 'deny' }
   })
