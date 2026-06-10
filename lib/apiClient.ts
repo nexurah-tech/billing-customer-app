@@ -8,9 +8,7 @@
  * all requests go to the current origin (i.e. relative URLs are used).
  */
 
-const BASE_URL =
-  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
-  '';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /**
  * Drop-in replacement for `fetch` that automatically prepends the configured
